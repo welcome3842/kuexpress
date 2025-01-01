@@ -8,8 +8,13 @@ const User = db.User;
 class AuthController {
 
   static registrationSchema = Joi.object({
-    username: Joi.string().min(3).required(),
+    firstName: Joi.string().required(),
+    lastName: Joi.string().required(),
+    firstName: Joi.string().required(),
+    mobile: Joi.string().required(),
     email: Joi.string().email().required(),
+    companyName: Joi.string().required(),
+    orderInMonth: Joi.string().required(),
     password: Joi.string().min(6).required(),
   });
 
