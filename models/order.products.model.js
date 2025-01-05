@@ -9,28 +9,28 @@ module.exports = (sequelize, Sequelize) => {
       },
       orderId: {
         type: Sequelize.INT,
-        allowNull: false,       
+        allowNull: false,
       },
       productId: {
         type: Sequelize.INT,
-        allowNull: false,       
+        allowNull: false,
       },
       productName: {
         type: Sequelize.STRING,
-        allowNull: true,       
-      },     
+        allowNull: true,
+      },
       hsn: {
         type: Sequelize.STRING,
-        allowNull: true,        
-      }, 
+        allowNull: true,
+      },
       sku: {
         type: Sequelize.STRING,
-        allowNull: true,        
-      },     
-     
+        allowNull: true,
+      },
+
       qty: {
         type: Sequelize.SMALLINT,
-        allowNull: true       
+        allowNull: true
       },
       productCategory: {
         type: Sequelize.INT,
@@ -38,7 +38,7 @@ module.exports = (sequelize, Sequelize) => {
       },
       unitPrice: {
         type: Sequelize.FLOAT,
-        allowNull: false,            
+        allowNull: false,
       },
       taxRate: {
         type: Sequelize.INT,
@@ -48,7 +48,6 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
-      
     },
     { sequelize, modelName: 'OrderProduct', tableName: 'order_products', timestamps: true }
   );

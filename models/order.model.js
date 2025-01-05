@@ -9,29 +9,29 @@ module.exports = (sequelize, Sequelize) => {
       },
       userId: {
         type: Sequelize.INT,
-        allowNull: false,       
+        allowNull: false,
       },
       orderNumebr: {
         type: Sequelize.STRING,
-        allowNull: true,       
-      },     
+        allowNull: true,
+      },
       orderChannel: {
         type: Sequelize.STRING,
-        allowNull: true,        
+        allowNull: true,
       },
       paymentMode: {
         type: Sequelize.STRING,
-        allowNull: true,       
+        allowNull: true,
       },
       shippingCharges: {
         type: Sequelize.FLOAT,
-        allowNull: true,    
-        defaultValue:0    
+        allowNull: true,
+        defaultValue:0
       },
       transactionFee: {
         type: Sequelize.FLOAT,
-        allowNull: true,    
-        defaultValue:0         
+        allowNull: true,
+        defaultValue:0
       },
       giftwrap: {
         type: Sequelize.FLOAT,
@@ -47,8 +47,8 @@ module.exports = (sequelize, Sequelize) => {
       },
       status: {
         type: Sequelize.TINYINT,
-        allowNull: false,  
-        defaultValue:0     
+        allowNull: false,
+        defaultValue:0
       },
     },
     { sequelize, modelName: 'Order', tableName: 'orders', timestamps: true }

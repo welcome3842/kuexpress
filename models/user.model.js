@@ -9,12 +9,12 @@ module.exports = (sequelize, Sequelize) => {
       },
       firstName: {
         type: Sequelize.STRING,
-        allowNull: true,       
+        allowNull: true,
       },
       lastName: {
         type: Sequelize.STRING,
-        allowNull: true,       
-      },     
+        allowNull: true,
+      },
       email: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -27,11 +27,11 @@ module.exports = (sequelize, Sequelize) => {
       },
       companyName: {
         type: Sequelize.STRING,
-        allowNull: true,       
+        allowNull: true,
       },
       orderInMonth: {
         type: Sequelize.STRING,
-        allowNull: true,       
+        allowNull: true,
       },
       password: {
         type: Sequelize.STRING,
@@ -43,8 +43,8 @@ module.exports = (sequelize, Sequelize) => {
       },
       status: {
         type: Sequelize.TINYINT,
-        allowNull: false,  
-        defaultValue:0     
+        allowNull: false,
+        defaultValue:0
       },
     },
     { sequelize, modelName: 'User', tableName: 'users', timestamps: true }
