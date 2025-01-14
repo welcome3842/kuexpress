@@ -8,7 +8,7 @@ module.exports = (sequelize, Sequelize) => {
         autoIncrement: true,
       },
       userId: {
-        type: Sequelize.INT,
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       orderNumebr: {
@@ -41,6 +41,14 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.FLOAT,
         allowNull: false,
       },
+      gstAmount: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+      },
+      gstPercentage: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+      },
       totalAmount: {
         type: Sequelize.FLOAT,
         allowNull: false,
@@ -49,6 +57,18 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.TINYINT,
         allowNull: false,
         defaultValue:0
+      },
+      orderDate: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      orderTag: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      resellerName: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
     },
     { sequelize, modelName: 'Order', tableName: 'orders', timestamps: true }
