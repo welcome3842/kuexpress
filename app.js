@@ -1,11 +1,17 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocs = require('./utils/swagger');
+
 const db = require('./models');
 const api = require('./routes/api');
 
 require('dotenv').config();
 
 const app = express();
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
 app.use(bodyParser.json());
 
 app.use('/api', api);
