@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocs = require('./utils/swagger');
-
+const cors = require('cors');
 const db = require('./models');
 const api = require('./routes/api');
 
@@ -13,7 +13,11 @@ const app = express();
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use(bodyParser.json());
-
+app.use(cors()); 
+app.use(function (req, res, next) {
+  res.header('Content-Type', 'application/json');
+  next();
+});  
 app.use('/api', api);
 
 // Sync database and start server
