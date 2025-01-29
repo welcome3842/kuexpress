@@ -29,13 +29,13 @@ class OrderController {
     userId: Joi.string().optional(),
     landmark: Joi.string().optional(),
     isBillingAddress: Joi.string().optional(),
-    productDetails: Joi.object().optional(),
+    productDetails: Joi.array().optional(),
   });
   static async createOrder(req, res) {
     try {
       if (req.method == "POST") {
         var reqData = req.body;
-        var userId  = reqData.userId;
+        var userId = reqData.userId;
         //parameter used for the Buyer details. This data is saving into shippingaddress table
         reqData['userId']           = userId;
         reqData['name']             = reqData.buyerDetails.name;
@@ -51,57 +51,75 @@ class OrderController {
         reqData['state']            = reqData.buyerDetails.state;
         reqData['country']          = reqData.buyerDetails.country;
         reqData['isBillingAddress'] = reqData.buyerDetails.isBillingAddress;
+
+        const { error } = OrderController.orderSchema.validate(reqData);
+        if (error) return res.status(400).json({ message: error.details[0].message });
+
         const shippingaddress = await ShippingAddress.create(reqData);
-        if(shippingaddress) {
+        if (shippingaddress) {
           await BillingAddress.create(reqData);
         }
 
         //console.log(reqData);
-      //parameter used for the Order details. This data is saving into orders table
-        var orderDetail={};
-        orderDetail['userId']           =  userId;
-        orderDetail['orderNumebr']      =  reqData.orderDetails.orderNumebr;
-        orderDetail['orderChannel']     =  reqData.orderDetails.orderChannel;
-        orderDetail['paymentMode']      =  reqData.orderDetails.paymentMode;
-        orderDetail['shippingCharges']  =  reqData.orderDetails.shippingCharges;
-        orderDetail['transactionFee']   =  reqData.orderDetails.transactionFee;
-        orderDetail['giftwrap']         =  reqData.orderDetails.giftwrap;
-        const subTotal                  =  reqData.orderDetails.totalAmount;
-        const gst                       =  reqData.orderDetails.gst;
-        const gstamount                 = (subTotal*gst) /100;
+        //parameter used for the Order details. This data is saving into orders table
+        var orderDetail = {};
+        orderDetail['userId']           = userId;
+        orderDetail['orderNumebr']      = reqData.orderDetails.orderNumebr;
+        orderDetail['orderChannel']     = reqData.orderDetails.orderChannel;
+        orderDetail['paymentMode']      = reqData.orderDetails.paymentMode;
+        orderDetail['shippingCharges']  = reqData.orderDetails.shippingCharges;
+        orderDetail['transactionFee']   = reqData.orderDetails.transactionFee;
+        orderDetail['giftwrap']         = reqData.orderDetails.giftwrap;
+        const subTotal                  = reqData.orderDetails.totalAmount;
+        const gst                       = reqData.orderDetails.gst;
+        const gstamount                 = (subTotal * gst) / 100;
         var totalPrice                  = parseFloat(subTotal) + parseFloat(gstamount);
         orderDetail['subTotal']         = subTotal;
         orderDetail['gstAmount']        = gstamount;
         orderDetail['gstPercentage']    = gst;
         orderDetail['totalAmount']      = totalPrice;
         orderDetail['status']           = 1;
-        orderDetail['orderDate']        =  reqData.orderDetails.orderDate;
-        orderDetail['orderTag']        =  reqData.orderDetails.orderTag;
-        orderDetail['resellerName']        =  reqData.orderDetails.resellerName;
+        orderDetail['orderDate']        = reqData.orderDetails.orderDate;
+        orderDetail['orderTag']         = reqData.orderDetails.orderTag;
+        orderDetail['resellerName']     = reqData.orderDetails.resellerName;
         //console.log(orderDetail);
 
-        const { error } = OrderController.orderSchema.validate(reqData);
-        if (error) return res.status(400).json({ message: error.details[0].message });
+
         const order = await Order.create(orderDetail);
         //parameter used for the product details. This data is saving into shippingaddress table
-        var productDetail={};
-        productDetail['orderId']          = order.id;
-        productDetail['productId']        = reqData.productDetails.productId;
-        productDetail['productName']      = reqData.productDetails.productName;
-        productDetail['unitPrice']        = reqData.productDetails.unitPrice;
-        productDetail['qty']              = reqData.productDetails.qty;
-        productDetail['productCategory']  = reqData.productDetails.productCategory;
-        productDetail['hsn']              = reqData.productDetails.hsn;
-        productDetail['sku']              = reqData.productDetails.sku;
-        productDetail['taxRate']          = reqData.productDetails.taxRate;
-        productDetail['productDiscount']  = reqData.productDetails.productDiscount;
-        await OrderProduct.create(productDetail);
+        var products = reqData.productDetails;
+        // products.forEach(product => {
+        //   //console.log(`Product Name: ${product.productName}`);
+        //   var productDetail = {};
+        //   productDetail['orderId']      = order.id;
+        //   productDetail['productId']    = product.productId;
+        //   productDetail['productName']  = product.productName;
+        //   productDetail['unitPrice']    = product.unitPrice;
+        //   productDetail['qty']          = product.qty;
+        //   productDetail['productCategory'] = product.productCategory;
+        //   productDetail['hsn']          = product.hsn;
+        //   productDetail['sku']          = product.sku;
+        //   productDetail['taxRate']      = product.taxRate;
+        //   productDetail['productDiscount'] = product.productDiscount;
+        //   //OrderProduct.create(productDetail);
+        // });
+        const result = await OrderProduct.bulkCreate(products);
 
-        return res.status(200).json({ "success": true, message: "Order created successfully"});
+        return res.status(200).json({ "success": true, message: "Order created successfully" });
       }
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: 'Error in order creation', error });
+    }
+  }
+  static async getOrderList(req, res) {
+    //var sql2 = "SELECT u.*,o.orderNumebr,sa.userId,op.productName,sa.address AS shippingAddress,ba.address AS billingAddress FROM users AS u INNER JOIN orders AS o ON u.id = o.userId INNER JOIN orderproducts AS op ON op.orderId = o.id INNER JOIN shippingaddress AS sa ON sa.userId = o.userId INNER JOIN billingaddress AS ba ON ba.userId = o.userId GROUP BY u.id, o.orderNumebr, sa.userId, op.productName, sa.address, ba.address ORDER BY u.id ";
+    var sql2 = "SELECT o.*,sa.userId,op.*,sa.address AS shippingAddress,ba.address AS billingAddress FROM orders AS o INNER JOIN orderproducts AS op ON op.orderId = o.id INNER JOIN shippingaddress AS sa ON sa.userId = o.userId INNER JOIN billingaddress AS ba ON ba.userId = o.userId ORDER BY o.id ";
+    const result = await db.sequelize.query(sql2);
+    console.log(result[0]);
+    // var param = {};
+    if (result[0]) {
+      return res.status(200).json({ "success": true, message: result[0] });
     }
   }
 }
