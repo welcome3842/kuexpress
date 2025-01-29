@@ -11,6 +11,7 @@ router.post('/auth/forgotPassword',  AuthController.forgotPassword);
 router.post('/auth/otpVerify',  AuthController.otpVerify);
 router.post('/auth/passwordUpdate',  AuthController.passwordUpdate);
 router.post('/auth/updateProfile/:id',  AuthController.updateProfile);
+router.get('/order/list',  OrderController.getOrderList);
 router.post('/order/create',  OrderController.createOrder);
 router.post('/ship/price-list',  ShipmentController.priceList);
 
