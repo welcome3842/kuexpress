@@ -11,6 +11,10 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      orderId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       name: {
         type: Sequelize.STRING,
         allowNull: true,
@@ -48,6 +52,11 @@ module.exports = (sequelize, Sequelize) => {
       country: {
         type: Sequelize.STRING,
         allowNull: true,
+      },
+      isBillingAddress: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+        defaultValue: true
       },
     },
     { sequelize, modelName: 'BillingAddress', tableName: 'billingaddress', timestamps: true }

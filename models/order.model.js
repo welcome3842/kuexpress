@@ -1,5 +1,14 @@
 module.exports = (sequelize, Sequelize) => {
-  class Order extends Sequelize.Model {}
+  class Order extends Sequelize.Model {
+    static associate(models) {
+      Order.hasMany(models.ShippingAddress, {
+        foreignKey: 'orderId', as: 'buyerDetails'
+      });
+      Order.hasMany(models.OrderProduct, {
+        foreignKey: 'orderId', as: 'productDetails'
+      });
+    }
+  }
   Order.init(
     {
       id: {
@@ -26,12 +35,12 @@ module.exports = (sequelize, Sequelize) => {
       shippingCharges: {
         type: Sequelize.FLOAT,
         allowNull: true,
-        defaultValue:0
+        defaultValue: 0
       },
       transactionFee: {
         type: Sequelize.FLOAT,
         allowNull: true,
-        defaultValue:0
+        defaultValue: 0
       },
       giftwrap: {
         type: Sequelize.FLOAT,
@@ -56,7 +65,7 @@ module.exports = (sequelize, Sequelize) => {
       status: {
         type: Sequelize.TINYINT,
         allowNull: false,
-        defaultValue:0
+        defaultValue: 0
       },
       orderDate: {
         type: Sequelize.DATE,

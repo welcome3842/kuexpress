@@ -17,5 +17,10 @@ db.Order = require('./order.model')(sequelize, Sequelize);
 db.ShippingAddress = require('./shippingAddress.model')(sequelize, Sequelize);
 db.BillingAddress = require('./billingAddress.model')(sequelize, Sequelize);
 db.OrderProduct = require('./orderProduct.model')(sequelize, Sequelize);
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
+  }
+});
 
 module.exports = db;
