@@ -7,6 +7,9 @@ module.exports = (sequelize, Sequelize) => {
       Order.hasMany(models.OrderProduct, {
         foreignKey: 'orderId', as: 'productDetails'
       });
+      Order.hasMany(models.PackageDetails, {
+        foreignKey: 'orderId', as: 'packageDetails'
+      });
     }
   }
   Order.init(

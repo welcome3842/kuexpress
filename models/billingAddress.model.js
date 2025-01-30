@@ -22,12 +22,12 @@ module.exports = (sequelize, Sequelize) => {
       email: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+        unique: false,
       },
       mobile: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+        unique: false,
       },
       address: {
         type: Sequelize.STRING,

@@ -7,6 +7,7 @@ const Order = db.Order;
 const ShippingAddress = db.ShippingAddress;
 const BillingAddress = db.BillingAddress;
 const OrderProduct = db.OrderProduct;
+const PackageDetails = db.PackageDetails;
 const nodemailer = require('nodemailer');
 const { password } = require('../config/db.config');
 
@@ -22,7 +23,7 @@ class OrderController {
     state: Joi.string().required(),
     country: Joi.string().required(),
     buyerDetails: Joi.object().optional(),
-    alternateMobile: Joi.string().optional(),
+    alternateMobile: Joi.string().allow(null, '').optional(),
     companyName: Joi.string().optional(),
     gstin: Joi.string().optional(),
     orderDetails: Joi.object().optional(),
@@ -30,6 +31,7 @@ class OrderController {
     landmark: Joi.string().optional(),
     isBillingAddress: Joi.boolean().optional(),
     productDetails: Joi.array().optional(),
+    packageDetails: Joi.object().optional(),
   });
   static async createOrder(req, res) {
     try {
@@ -64,14 +66,14 @@ class OrderController {
         orderDetail['shippingCharges'] = reqData.orderDetails.shippingCharges;
         orderDetail['transactionFee'] = reqData.orderDetails.transactionFee;
         orderDetail['giftwrap'] = reqData.orderDetails.giftwrap;
-        const subTotal = reqData.orderDetails.totalAmount;
-        const gst = reqData.orderDetails.gst;
-        const gstamount = (subTotal * gst) / 100;
-        var totalPrice = parseFloat(subTotal) + parseFloat(gstamount);
-        orderDetail['subTotal'] = subTotal;
-        orderDetail['gstAmount'] = gstamount;
-        orderDetail['gstPercentage'] = gst;
-        orderDetail['totalAmount'] = totalPrice;
+        //const subTotal = reqData.orderDetails.totalAmount;
+        //const gst = reqData.orderDetails.gst;
+        //const gstamount = (subTotal * gst) / 100;
+        //var totalPrice = parseFloat(subTotal) + parseFloat(gstamount);
+        orderDetail['subTotal'] = reqData.orderDetails.subTotal;
+        orderDetail['gstAmount'] = reqData.orderDetails.gstAmount;
+        orderDetail['gstPercentage'] = reqData.orderDetails.gstPercentage;
+        orderDetail['totalAmount'] = reqData.orderDetails.totalAmount;
         orderDetail['status'] = 1;
         orderDetail['orderDate'] = reqData.orderDetails.orderDate;
         orderDetail['orderTag'] = reqData.orderDetails.orderTag;
@@ -87,6 +89,17 @@ class OrderController {
         if (shippingaddress) {
           await BillingAddress.create(reqData);
         }
+
+        var packageDetail = {};
+        packageDetail['orderId']            = orderId;
+        packageDetail['deadWeight']         = reqData.packageDetails.deadWeight;
+        packageDetail['packageDimensions']  = reqData.packageDetails.packageDimensions;
+        packageDetail['volumetricWeight']   = reqData.packageDetails.volumetricWeight;
+        packageDetail['applicableWeight']   = reqData.packageDetails.applicableWeight;
+        packageDetail['length']             = reqData.packageDetails.length;
+        packageDetail['width']              = reqData.packageDetails.width;
+        packageDetail['height']             = reqData.packageDetails.height;
+        await PackageDetails.create(packageDetail);
         //parameter used for the product details. This data is saving into shippingaddress table
         var products = reqData.productDetails;
         products.forEach(product => {
@@ -123,6 +136,10 @@ class OrderController {
           {
             model: db.OrderProduct,
             as: 'productDetails'
+          },
+          {
+            model: db.PackageDetails,
+            as: 'packageDetails'
           }]
       });
       if (orders) {
