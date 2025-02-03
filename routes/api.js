@@ -16,9 +16,13 @@ router.post('/useraddress/create',  UserController.createAddress);
 router.get('/useraddress/list',  UserController.getUserAddressList);
 router.put('/useraddress/update/:id',  UserController.updateUserAddress);
 router.delete('/useraddress/delete/:id',  UserController.delUserAddress);
+router.post('/useraddress/generateotp',  UserController.generateAddressOtp);
+router.post('/verifyaddress',  UserController.verifyAddress);
 
 router.get('/order/list',  OrderController.getOrderList);
 router.post('/order/create',  OrderController.createOrder);
 router.post('/ship/price-list',  ShipmentController.priceList);
+router.post('/ship/courier-list',  ShipmentController.courierList);
+router.post('/ship/create-shipment',  ShipmentController.createShipment);
 
 module.exports = router;

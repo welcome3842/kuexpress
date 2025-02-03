@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const Joi = require('joi');
 const db = require('../models');
+const Otp = db.Otp;
+const { Op } = require('sequelize');
 const UserAddress = db.UserAddress;
 
 class UserController {
@@ -85,6 +87,94 @@ class UserController {
     } catch (error) {
       console.error(error);
       res.status(500).send('Error in deleting address data');
+    }
+  }
+  static async generateAddressOtp(req, res) {
+
+    // Joi validation schema for forgot password request
+    const otpSchema = Joi.object({
+      contactNumber: Joi.string().required(),
+      type: Joi.string().required(),
+      userId: Joi.string().required(),
+    });
+
+    const { error } = otpSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+
+    // Generate a random OTP
+    const generateOTP = () => {
+      return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+    };
+
+    //const { contactNumber } = req.body;
+    var reqData = req.body;
+    // Generate a new OTP
+    const otpval = generateOTP();
+    const otpExpiry = new Date();
+    otpExpiry.setMinutes(otpExpiry.getMinutes() + 10); // OTP expires in 10 minutes
+    // Save OTP in memory (or database in production)
+    const otpRecord = await Otp.findOne({
+      where: {
+        mobile: reqData.contactNumber,
+        type: reqData.type,
+        userId: reqData.userId
+      }
+    })
+    if (otpRecord) {
+      await otpRecord.update({ otp: otpval, otpExpiry: otpExpiry });
+    } else {
+      // Create a new record if it doesn't exist
+      await Otp.create({ userId: reqData.userId, mobile: reqData.contactNumber, otp: otpval, otpExpiry: otpExpiry, type: reqData.type });
+    }
+
+    try {
+      res.status(200).json({ message: 'OTP ' + otpval + ' has been sent to your mobile.' });
+    } catch (err) {
+      console.error('Error sending otp:', err);
+      res.status(500).json({ message: 'Internal server error. Please try again later.' });
+    }
+  }
+
+  static async verifyAddress(req, res) {
+    // Define OTP validation schema
+    const verifiedotpSchema = Joi.object({
+      otp: Joi.string().required(),
+      type: Joi.string().required(),
+      addressId: Joi.string().required(),
+    });
+
+    // Sample OTP for validation
+    var reqData = req.body;
+
+    // Validate the OTP against the schema
+    const { error } = verifiedotpSchema.validate(reqData);
+    if (error) {
+      return res.status(400).json({ "success": false, message: error.details[0].message });
+    }
+    try {
+      const otpRecord = await Otp.findOne({
+        where: {
+          otp: reqData.otp,
+          type: reqData.type
+        }
+      })
+      if (otpRecord) {
+        const currentTime = new Date().getTime();
+        if (currentTime > otpRecord.otpExpiry) {
+          return res.status(400).json({ success: false, message: 'OTP has expired' });
+        }
+        const userAddress = await UserAddress.findOne({ where: { id: reqData.addressId } });
+        if (userAddress) {
+          await userAddress.update({ status: 'Verified' });
+          return res.status(200).json({ "success": true, message: "Address verified successfully" });
+        }
+      } else {
+        return res.status(400).json({ success: false, message: 'Invalid OTP' });
+      }
+    } catch (error) {
+      return res.status(500).json({ success: false, message: error });
     }
   }
 }

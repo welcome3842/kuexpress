@@ -27,6 +27,10 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.DATE,
         allowNull: true,
       },
+      type: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
     },
     { sequelize, modelName: 'Otp', tableName: 'otps', timestamps: true }
   );

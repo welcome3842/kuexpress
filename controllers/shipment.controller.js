@@ -102,20 +102,20 @@ class ShipmentController {
         var reqData = req.body;
         const loginResponse = await authService.login();
         if (loginResponse && loginResponse.status) {
-          const authToken = loginResponse.data;          
+          const authToken = loginResponse.data;
           const shipresponse = await shipmentService.createShipment({
             reqData,
             authToken,
           });
-         
+
           if (shipresponse && shipresponse.response) {
-            
+
             const {
               shipping_id,
               awb_number,
               courier_id,
               label,
-            } = shipresponse;           
+            } = shipresponse;
 
             shipresponse.success = true;
             return res.status(200).json(shipresponse);
@@ -123,19 +123,19 @@ class ShipmentController {
           }else
           {
             return res.status(200).json({
-              success: false,             
+              success: false,
               message: shipresponse.message,
             });
          }
         } else {
           return res
             .status(200)
-            .json({ success: false, message: "Price list not found" });
+            .json({ success: false, message: "Shipment creation error" });
         }
       }
     } catch (error) {
       console.log(error);
-      return res.status(500).json({ message: "Error in price list", error });
+      return res.status(500).json({ message: "Error in creating shipment", error });
     }
   }
 
