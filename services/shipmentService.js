@@ -62,12 +62,12 @@ exports.courierList = async ({ authToken }) => {
 };
 
 
-exports.createShipment = async ({ shipdata, authToken, }) => {
+exports.createShipment = async ({ reqData, authToken, }) => {
 
     try {
       const response = await axios.post(
         `${apiBaseUrl}/franchise/shipments`,
-        shipdata,
+        reqData,
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
@@ -77,7 +77,6 @@ exports.createShipment = async ({ shipdata, authToken, }) => {
       );
       return response.data;
     } catch (error) {
-      console.log(error);
       throw new Error(
         error.response?.data?.message || "Failed to create shipment"
       );
