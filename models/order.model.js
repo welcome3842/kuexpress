@@ -82,6 +82,42 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      message: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      shipping_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      awb_number: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      courier_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      courier_name: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      label: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      shipResponse: {
+        type: Sequelize.TEXT,
+        allowNull: true,
+      },
+      shipCreatedDate: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      shipCancelDate: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
     },
     { sequelize, modelName: 'Order', tableName: 'orders', timestamps: true }
   );

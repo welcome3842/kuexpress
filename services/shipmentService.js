@@ -62,12 +62,12 @@ exports.courierList = async ({ authToken }) => {
 };
 
 
-exports.createShipment = async ({ shipdata, authToken, }) => {
-   
+exports.createShipment = async ({ reqData, authToken, }) => {
+
     try {
       const response = await axios.post(
         `${apiBaseUrl}/franchise/shipments`,
-        shipdata,
+        reqData,
         {
           headers: {
             Authorization: `Bearer ${authToken}`,
