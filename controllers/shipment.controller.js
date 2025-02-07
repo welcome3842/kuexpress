@@ -71,6 +71,7 @@ class ShipmentController {
     try {
       if (req.method == "POST") {
         const loginResponse = await authService.login();
+       
         if (loginResponse && loginResponse.status) {
           const authToken = loginResponse.data;
           const courierresponse = await shipmentService.courierList({
@@ -102,14 +103,62 @@ class ShipmentController {
       if (req.method == "POST") {
         const reqData = req.body;
 
+        const payload={
+          "id": "ord001",
+          "unique_order_number": "yes/no",
+          "payment_method": "COD",
+          "consigner_name": "Rishabh201",
+          "consigner_phone": "9880909090",
+          "consigner_pincode": "122002",
+          "consigner_city": "Gurugram",
+          "consigner_state": "Haryana",
+          "consigner_address": "Sikandarpur metro station",
+          "consigner_gst_number": "06DSALI2367U1ZL",
+          "consignee_name": "Test Consignee",
+          "consignee_phone": "8989898989",
+          "consignee_pincode": "110011",
+          "consignee_city": "NEW DELHI",
+          "consignee_state": "delhi",
+          "consignee_address": "A1",
+          "consignee_gst_number": "06DSALI2367U1ZE",
+          "products": [
+           {
+            "product_name": "prod123",
+            "product_qty": "1",
+            "product_price": "1200",
+            "product_tax_per": "",
+            "product_sku": "SKU001",
+            "product_hsn": "3004"
+           }
+          ],
+          "invoice": [
+           {
+            "invoice_number": "INB002",
+            "invoice_date": "2022-03-23",
+            "ebill_number": "ENB002",
+            "ebill_expiry_date": "2022-03-25"
+           }
+          ],
+          "weight": "700",
+          "breadth": "12",
+          "courier_id": "01",
+          "pickup_location": "franchise",
+          "shipping_charges":"40",
+          "cod_charges":"25",
+          "discount":"20",
+          "order_amount":"2500",
+          "collectable_amount":"1500"
+          };
+
         const loginResponse = await authService.login();
+      
         if (loginResponse && loginResponse.status) {
           const authToken = loginResponse.data;
           const shipresponse = await shipmentService.createShipment({
-            reqData,
+            payload,
             authToken,
           });
-
+         
           if (shipresponse && shipresponse.response) {
             //data updating in order table
             const order = await Order.findOne({ where: { orderNumebr: reqData.id } });
@@ -132,10 +181,8 @@ class ShipmentController {
             return res.status(200).json(shipresponse);
 
           } else {
-            return res.status(200).json({
-              success: false,
-              message: shipresponse.message,
-            });
+            shipresponse.success = false;
+            return res.status(200).json(shipresponse);
           }
         } else {
           return res
