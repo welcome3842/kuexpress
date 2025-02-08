@@ -20,7 +20,9 @@ router.post('/useraddress/generateotp',  UserController.generateAddressOtp);
 router.post('/verifyaddress',  UserController.verifyAddress);
 
 router.get('/order/list',  OrderController.getOrderList);
-router.post('/location',  OrderController.getLocationBypinCode);
+router.get('/location/:pincode',  OrderController.getLocationBypinCode);
+router.get('/states',  OrderController.getAllStates);
+router.get('/countries',  OrderController.getAllCountries);
 router.post('/order/create',  OrderController.createOrder);
 router.post('/ship/price-list',  ShipmentController.priceList);
 router.post('/ship/courier-list',  ShipmentController.courierList);
