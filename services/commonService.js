@@ -4,6 +4,7 @@ const ShippingAddress = db.ShippingAddress;
 const OrderProduct = db.OrderProduct;
 const PackageDetails = db.PackageDetails;
 const UserAddress = db.UserAddress;
+const Invoice = db.Invoice;
 
 exports.getOrderListByOrderNumber = async ({ orderNumebr }) => {
   try {
@@ -27,6 +28,10 @@ exports.getOrderListByOrderNumber = async ({ orderNumebr }) => {
         {
           model: db.PackageDetails,
           as: 'packageDetails'
+        },
+        {
+          model: db.Invoice,
+          as: 'invoice'
         }]
     });
     return orders;

@@ -13,6 +13,9 @@ module.exports = (sequelize, Sequelize) => {
       Order.hasMany(models.UserAddress, {
         foreignKey: 'orderId', as: 'pickupDetails'
       });
+      Order.hasMany(models.Invoice, {
+        foreignKey: 'orderId', as: 'invoice'
+      });
     }
   }
   Order.init(

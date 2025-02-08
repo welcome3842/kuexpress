@@ -106,11 +106,17 @@ class ShipmentController {
         const orderNumebr = reqData.orderNumebr;
 
         const result = await commonService.getOrderListByOrderNumber({ orderNumebr });
-        const ordData = result[0];
+
         const addressData = result.buyerDetails[0];
         const pickupData = result.pickupDetails[0];
         const packageData = result.packageDetails[0];
-        //console.log(packageData);
+        const invoiceData = result.invoice[0];
+
+        const invoice_date = new Date(invoiceData.invoice_date);
+        const invoiceDate = invoice_date.toISOString().split('T')[0];
+
+        const ebill_expiry_date = new Date(invoiceData.ebill_expiry_date);
+        const ebillDate = ebill_expiry_date.toISOString().split('T')[0];
 
         var productData = [];
         if (result.productDetails) {
@@ -128,7 +134,7 @@ class ShipmentController {
         }
 
         const payload = {
-          "id": ordData.orderNumebr,
+          "id": result.orderNumebr,
           "unique_order_number": "yes/no",
           "payment_method": "COD",
 
@@ -151,24 +157,22 @@ class ShipmentController {
           "products": productData,
           "invoice": [
             {
-              "invoice_number": "INB002",
-              "invoice_date": "2022-03-23",
-              "ebill_number": "ENB002",
-              "ebill_expiry_date": "2022-03-25"
+              "invoice_number": invoiceData.invoice_number,
+              "invoice_date": invoiceDate,
+              "ebill_number": invoiceData.ebill_number,
+              "ebill_expiry_date": ebillDate,
             }
           ],
           "weight": packageData.deadWeight,
           "breadth": packageData.width,
           "courier_id": reqData.courier_id,
           "pickup_location": "franchise",
-          "shipping_charges": "40",
+          "shipping_charges": "0",
           "cod_charges": "25",
-          "discount": "20",
-          "order_amount": ordData.totalAmount,
-          "collectable_amount": ordData.totalAmount
+          "discount": "0",
+          "order_amount": result.totalAmount,
+          "collectable_amount": result.totalAmount
         };
-
-        console.log(payload); return false;
 
         const loginResponse = await authService.login();
 
@@ -211,6 +215,7 @@ class ShipmentController {
         }
       }
     } catch (error) {
+      console.log(error);
       return res.status(500).json({ message: "Error in creating shipment", error });
     }
   }

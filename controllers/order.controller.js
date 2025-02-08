@@ -9,6 +9,7 @@ const BillingAddress = db.BillingAddress;
 const OrderProduct = db.OrderProduct;
 const PackageDetails = db.PackageDetails;
 const UserAddress = db.UserAddress;
+const Invoice = db.Invoice;
 const nodemailer = require('nodemailer');
 const { password } = require('../config/db.config');
 
@@ -33,12 +34,14 @@ class OrderController {
     isBillingAddress: Joi.boolean().optional(),
     productDetails: Joi.array().optional(),
     packageDetails: Joi.object().optional(),
+    pickupDetails: Joi.object().optional(),
   });
   static async createOrder(req, res) {
     try {
       if (req.method == "POST") {
         var reqData = req.body;
         var userId = reqData.userId;
+
         //parameter used for the Buyer details. This data is saving into shippingaddress table
         reqData['userId'] = userId;
         reqData['name'] = reqData.buyerDetails.name;
@@ -137,6 +140,18 @@ class OrderController {
           OrderProduct.create(productDetail);
         });
         //const result = await OrderProduct.bulkCreate(products); // I wil do it later
+        //generate invoice
+        let ebill_expiry_date = new Date(orderDetail['orderDate']);
+        ebill_expiry_date.setDate(ebill_expiry_date.getDate() + 15);
+
+        var invoiceDetail = {};
+        invoiceDetail['userId']             = userId;
+        invoiceDetail['orderId']            = 1;
+        invoiceDetail['invoice_number']     = 'INB'+orderDetail['orderNumebr'];
+        invoiceDetail['ebill_number']       = 'ENB'+orderDetail['orderNumebr'];
+        invoiceDetail['invoice_date']       = orderDetail['orderDate'];
+        invoiceDetail['ebill_expiry_date']  = ebill_expiry_date;
+        await Invoice.create(invoiceDetail);
 
         return res.status(200).json({ "success": true, message: "Order created successfully" });
       }
