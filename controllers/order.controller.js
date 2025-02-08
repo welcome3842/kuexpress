@@ -152,14 +152,17 @@ class OrderController {
   }
   static async getLocationBypinCode(req, res) {
     try {
-      const pinCode = req.params.pinCode;
-      const sql2 = "SELECT * FROM locations WHERE pinCode = :pinCode LIMIT 1";
+      const pincode = req.body.pincode;
+      let sql2 = "SELECT * FROM locations";
+      if (pincode) {
+        sql2 += " WHERE pincode = :pincode";
+      }
       const result = await db.sequelize.query(sql2, {
-        replacements: { pinCode: pinCode },
+        replacements: { pincode: pincode },
         type: db.Sequelize.QueryTypes.SELECT
       });
       if (result.length > 0) {
-        return res.status(200).json({ "success": true, "data": result[0] });
+        return res.status(200).json({ "success": true, "data": result });
       } else {
         res.status(404).send('Pin code not found');
       }
