@@ -11,6 +11,10 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      orderId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
       contactPerson: {
         type: Sequelize.STRING,
         allowNull: true,

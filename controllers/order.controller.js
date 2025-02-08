@@ -8,6 +8,7 @@ const ShippingAddress = db.ShippingAddress;
 const BillingAddress = db.BillingAddress;
 const OrderProduct = db.OrderProduct;
 const PackageDetails = db.PackageDetails;
+const UserAddress = db.UserAddress;
 const nodemailer = require('nodemailer');
 const { password } = require('../config/db.config');
 
@@ -89,6 +90,25 @@ class OrderController {
         if (shippingaddress) {
           await BillingAddress.create(reqData);
         }
+        //pickup details
+        var pickupDetail = {};
+        pickupDetail['userId'] = userId;
+        pickupDetail['orderId'] = orderId;
+        pickupDetail['contactPerson'] = reqData.pickupDetails.contactPerson;
+        pickupDetail['contactNumber'] = reqData.pickupDetails.contactNumber;
+        pickupDetail['email'] = reqData.pickupDetails.email;
+        pickupDetail['alternateNumber'] = reqData.pickupDetails.alternateNumber;
+        pickupDetail['address'] = reqData.pickupDetails.address;
+        pickupDetail['landmark'] = reqData.pickupDetails.landmark;
+        pickupDetail['pinCode'] = reqData.pickupDetails.pinCode;
+        pickupDetail['city'] = reqData.pickupDetails.city;
+        pickupDetail['state'] = reqData.pickupDetails.state;
+        pickupDetail['country'] = reqData.pickupDetails.country;
+        pickupDetail['tagAddress'] = reqData.pickupDetails.tagAddress;
+        pickupDetail['status'] = reqData.pickupDetails.status;
+        pickupDetail['isDefaultAddress'] = reqData.pickupDetails.isDefaultAddress;
+
+        await UserAddress.create(pickupDetail);
 
         var packageDetail = {};
         packageDetail['orderId']            = orderId;
