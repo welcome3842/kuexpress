@@ -91,14 +91,14 @@ class OrderController {
         }
 
         var packageDetail = {};
-        packageDetail['orderId']            = orderId;
-        packageDetail['deadWeight']         = reqData.packageDetails.deadWeight;
-        packageDetail['packageDimensions']  = reqData.packageDetails.packageDimensions;
-        packageDetail['volumetricWeight']   = reqData.packageDetails.volumetricWeight;
-        packageDetail['applicableWeight']   = reqData.packageDetails.applicableWeight;
-        packageDetail['length']             = reqData.packageDetails.length;
-        packageDetail['width']              = reqData.packageDetails.width;
-        packageDetail['height']             = reqData.packageDetails.height;
+        packageDetail['orderId'] = orderId;
+        packageDetail['deadWeight'] = reqData.packageDetails.deadWeight;
+        packageDetail['packageDimensions'] = reqData.packageDetails.packageDimensions;
+        packageDetail['volumetricWeight'] = reqData.packageDetails.volumetricWeight;
+        packageDetail['applicableWeight'] = reqData.packageDetails.applicableWeight;
+        packageDetail['length'] = reqData.packageDetails.length;
+        packageDetail['width'] = reqData.packageDetails.width;
+        packageDetail['height'] = reqData.packageDetails.height;
         await PackageDetails.create(packageDetail);
         //parameter used for the product details. This data is saving into shippingaddress table
         var products = reqData.productDetails;
@@ -148,6 +148,24 @@ class OrderController {
     } catch (error) {
       console.error(error);
       res.status(500).send('Error fetching orders with orders');
+    }
+  }
+  static async getLocationBypinCode(req, res) {
+    try {
+      const pinCode = req.params.pinCode;
+      const sql2 = "SELECT * FROM locations WHERE pinCode = :pinCode LIMIT 1";
+      const result = await db.sequelize.query(sql2, {
+        replacements: { pinCode: pinCode },
+        type: db.Sequelize.QueryTypes.SELECT
+      });
+      if (result.length > 0) {
+        return res.status(200).json({ "success": true, "data": result[0] });
+      } else {
+        res.status(404).send('Pin code not found');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching pin code');
     }
   }
 }
