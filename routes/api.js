@@ -19,8 +19,8 @@ router.delete('/useraddress/delete/:id',  UserController.delUserAddress);
 router.post('/useraddress/generateotp',  UserController.generateAddressOtp);
 router.post('/verifyaddress',  UserController.verifyAddress);
 
-router.get('/order/list',  OrderController.getOrderList);
-router.get('/location/:pinCode',  OrderController.getLocationBypinCode);
+router.get('/order/list',  OrderController.getOrderList);;
+router.get('/location',  OrderController.getLocationBypinCode);
 router.post('/order/create',  OrderController.createOrder);
 router.post('/ship/price-list',  ShipmentController.priceList);
 router.post('/ship/courier-list',  ShipmentController.courierList);
