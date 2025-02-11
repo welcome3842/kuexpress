@@ -5,6 +5,7 @@ const AuthController    =  require('../controllers/auth.controller');
 const OrderController    =  require('../controllers/order.controller');
 const ShipmentController    =  require('../controllers/shipment.controller');
 const UserController    =  require('../controllers/user.controller');
+const ProductController    =  require('../controllers/product.controller');
 
 router.post('/auth/login', AuthController.login);
 router.post('/auth/signup',  AuthController.register);
@@ -20,10 +21,14 @@ router.post('/useraddress/generateotp',  UserController.generateAddressOtp);
 router.post('/verifyaddress',  UserController.verifyAddress);
 
 router.get('/order/list',  OrderController.getOrderList);
-router.post('/location',  OrderController.getLocationBypinCode);
+router.get('/location/:pincode',  OrderController.getLocationBypinCode);
+router.get('/states',  OrderController.getAllStates);
+router.get('/countries',  OrderController.getAllCountries);
 router.post('/order/create',  OrderController.createOrder);
 router.post('/ship/price-list',  ShipmentController.priceList);
 router.post('/ship/courier-list',  ShipmentController.courierList);
 router.post('/ship/create-shipment',  ShipmentController.createShipment);
+
+router.get('/products/list',  ProductController.getProductList);
 
 module.exports = router;

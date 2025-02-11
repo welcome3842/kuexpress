@@ -187,23 +187,49 @@ class OrderController {
   }
   static async getLocationBypinCode(req, res) {
     try {
-      const pincode = req.body.pincode;
-      let sql2 = "SELECT * FROM locations";
-      if (pincode) {
-        sql2 += " WHERE pincode = :pincode";
-      }
+      const pincode = req.params.pincode;
+      const sql2 = "SELECT * FROM locations WHERE pincode = :pincode LIMIT 1";
       const result = await db.sequelize.query(sql2, {
         replacements: { pincode: pincode },
         type: db.Sequelize.QueryTypes.SELECT
       });
+
       if (result.length > 0) {
-        return res.status(200).json({ "success": true, "data": result });
+        return res.status(200).json({ success: true, data: result });
       } else {
-        res.status(404).send('Pin code not found');
+        return res.status(404).json({ success: false, message: 'Pin code not found' });
       }
     } catch (error) {
       console.error(error);
       res.status(500).send('Error in fetching pin code');
+    }
+  }
+  static async getAllStates(req, res) {
+    try {
+      let sql2 = "SELECT * FROM states";
+      const result = await db.sequelize.query(sql2);
+      if (result.length > 0) {
+        return res.status(200).json({ "success": true, "data": result });
+      } else {
+        res.status(404).send('States not found');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching states');
+    }
+  }
+  static async getAllCountries(req, res) {
+    try {
+      let countries = "SELECT * FROM countries";
+      const result = await db.sequelize.query(countries);
+      if (result.length > 0) {
+        return res.status(200).json({ "success": true, "data": result[0] });
+      } else {
+        res.status(404).send('Countries not found');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching country');
     }
   }
 }
