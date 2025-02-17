@@ -5,6 +5,7 @@ const Joi = require("joi");
 const db = require("../models");
 const authService = require("../services/authService");
 const shipmentService = require("../services/shipmentService");
+const commonService = require("../services/commonService");
 const Order = db.Order;
 
 class ShipmentController {
@@ -71,7 +72,7 @@ class ShipmentController {
     try {
       if (req.method == "POST") {
         const loginResponse = await authService.login();
-       
+
         if (loginResponse && loginResponse.status) {
           const authToken = loginResponse.data;
           const courierresponse = await shipmentService.courierList({
@@ -102,66 +103,91 @@ class ShipmentController {
     try {
       if (req.method == "POST") {
         const reqData = req.body;
+        const orderNumebr = reqData.orderNumebr;
 
-        const payload={
-          "id": "ord001",
+        const result = await commonService.getOrderListByOrderNumber({ orderNumebr });
+
+        const addressData = result.buyerDetails[0];
+        const pickupData = result.pickupDetails[0];
+        const packageData = result.packageDetails[0];
+        const invoiceData = result.invoice[0];
+
+        const invoice_date = new Date(invoiceData.invoice_date);
+        const invoiceDate = invoice_date.toISOString().split('T')[0];
+
+        const ebill_expiry_date = new Date(invoiceData.ebill_expiry_date);
+        const ebillDate = ebill_expiry_date.toISOString().split('T')[0];
+
+        var productData = [];
+        if (result.productDetails) {
+          for (var i = 0; i < result.productDetails.length; i++) {
+            let productObj = {
+              "product_name": result.productDetails[i].productName,
+              "product_qty": result.productDetails[i].qty,
+              "product_price": result.productDetails[i].unitPrice,
+              "product_tax_per": "",
+              "product_sku": result.productDetails[i].sku,
+              "product_hsn": result.productDetails[i].hsn
+            }
+            productData[i] = productObj;
+          }
+        }
+
+        const payload = {
+          "id": result.orderNumebr,
           "unique_order_number": "yes/no",
           "payment_method": "COD",
-          "consigner_name": "Rishabh201",
-          "consigner_phone": "9880909090",
-          "consigner_pincode": "122002",
-          "consigner_city": "Gurugram",
-          "consigner_state": "Haryana",
-          "consigner_address": "Sikandarpur metro station",
+
+          "consigner_name": addressData.name,
+          "consigner_phone": addressData.mobile,
+          "consigner_pincode": addressData.pinCode,
+          "consigner_city": addressData.city,
+          "consigner_state": addressData.state,
+          "consigner_address": addressData.address,
           "consigner_gst_number": "06DSALI2367U1ZL",
-          "consignee_name": "Test Consignee",
-          "consignee_phone": "8989898989",
-          "consignee_pincode": "110011",
-          "consignee_city": "NEW DELHI",
-          "consignee_state": "delhi",
-          "consignee_address": "A1",
+
+          "consignee_name": pickupData.contactPerson,
+          "consignee_phone": pickupData.contactNumber,
+          "consignee_pincode": pickupData.pinCode,
+          "consignee_city": pickupData.city,
+          "consignee_state": pickupData.state,
+          "consignee_address": pickupData.address,
           "consignee_gst_number": "06DSALI2367U1ZE",
-          "products": [
-           {
-            "product_name": "prod123",
-            "product_qty": "1",
-            "product_price": "1200",
-            "product_tax_per": "",
-            "product_sku": "SKU001",
-            "product_hsn": "3004"
-           }
-          ],
+
+          "products": productData,
           "invoice": [
-           {
-            "invoice_number": "INB002",
-            "invoice_date": "2022-03-23",
-            "ebill_number": "ENB002",
-            "ebill_expiry_date": "2022-03-25"
-           }
+            {
+              "invoice_number": invoiceData.invoice_number,
+              "invoice_date": invoiceDate,
+              "ebill_number": invoiceData.ebill_number,
+              "ebill_expiry_date": ebillDate,
+            }
           ],
-          "weight": "700",
-          "breadth": "12",
-          "courier_id": "01",
+          "weight": packageData.deadWeight,
+          "length": packageData.length,
+          "breadth": packageData.width,
+          "height": packageData.height,
+          "courier_id": reqData.courier_id,
           "pickup_location": "franchise",
-          "shipping_charges":"40",
-          "cod_charges":"25",
-          "discount":"20",
-          "order_amount":"2500",
-          "collectable_amount":"1500"
-          };
+          "shipping_charges": "0",
+          "cod_charges": "25",
+          "discount": "0",
+          "order_amount": result.totalAmount,
+          "collectable_amount": result.totalAmount
+        };
 
         const loginResponse = await authService.login();
-      
+
         if (loginResponse && loginResponse.status) {
           const authToken = loginResponse.data;
           const shipresponse = await shipmentService.createShipment({
             payload,
             authToken,
           });
-         
+
           if (shipresponse && shipresponse.response) {
             //data updating in order table
-            const order = await Order.findOne({ where: { orderNumebr: reqData.id } });
+            const order = await Order.findOne({ where: { orderNumebr: orderNumebr } });
             if (order) {
               const currentDate = new Date();
               await order.update({
@@ -191,10 +217,38 @@ class ShipmentController {
         }
       }
     } catch (error) {
+      console.log(error);
       return res.status(500).json({ message: "Error in creating shipment", error });
     }
   }
 
+  static async cancelShipment(req, res) {
+    try {
+      if (req.method == "POST") {
+        const reqData = req.body;
+        const loginResponse = await authService.login();
+
+        if (loginResponse && loginResponse.status) {
+          const authToken = loginResponse.data;
+          const courierresponse = await shipmentService.cancelShipment({
+            reqData,
+            authToken,
+          });
+          return res.status(200).json({
+            success: courierresponse.response,
+            response: courierresponse.message,
+          });
+        } else {
+          return res
+            .status(200)
+            .json({ success: false, message: "Shipment found" });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Error in cancel shipment", error });
+    }
+  }
 
 }
 
