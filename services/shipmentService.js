@@ -62,22 +62,42 @@ exports.courierList = async ({ authToken }) => {
 };
 
 
-exports.createShipment = async ({ reqData, authToken, }) => {
- 
+exports.cancelShipment = async ({ reqData, authToken, }) => {
+
   try {
-      const response = await axios.post(
-        `${apiBaseUrl}/franchise/shipments`,
-        reqData,
-        {
-          headers: {
-            Authorization: `Bearer ${authToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-     
-      return response.data;
-    } catch (error) {
-      return error.response?.data;
-    }
-  };
+    const response = await axios.post(
+      `${apiBaseUrl}/franchise/shipments/cancel_shipment`,
+      reqData,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    return error.response?.data;
+  }
+};
+
+exports.createShipment = async ({ payload, authToken, }) => {
+
+  try {
+    const response = await axios.post(
+      `${apiBaseUrl}/franchise/shipments`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    return error.response?.data;
+  }
+};

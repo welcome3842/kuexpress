@@ -232,6 +232,19 @@ class OrderController {
       res.status(500).send('Error in fetching country');
     }
   }
+  static async cancelOrder(req, res) {
+    try {
+      var reqData = req.body;
+      const cancelOrder = await Order.findOne({ where: { orderNumebr: reqData.orderNumebr } });
+      if (cancelOrder) {
+        await cancelOrder.update({ status: 5 });
+        return res.status(200).json({ "success": true, message: "Order canceled successfully" });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in cancelling order');
+    }
+  }
 }
 
 module.exports = OrderController;

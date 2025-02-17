@@ -164,7 +164,9 @@ class ShipmentController {
             }
           ],
           "weight": packageData.deadWeight,
+          "length": packageData.length,
           "breadth": packageData.width,
+          "height": packageData.height,
           "courier_id": reqData.courier_id,
           "pickup_location": "franchise",
           "shipping_charges": "0",
@@ -185,7 +187,7 @@ class ShipmentController {
 
           if (shipresponse && shipresponse.response) {
             //data updating in order table
-            const order = await Order.findOne({ where: { orderNumebr: reqData.id } });
+            const order = await Order.findOne({ where: { orderNumebr: orderNumebr } });
             if (order) {
               const currentDate = new Date();
               await order.update({
@@ -220,6 +222,33 @@ class ShipmentController {
     }
   }
 
+  static async cancelShipment(req, res) {
+    try {
+      if (req.method == "POST") {
+        const reqData = req.body;
+        const loginResponse = await authService.login();
+
+        if (loginResponse && loginResponse.status) {
+          const authToken = loginResponse.data;
+          const courierresponse = await shipmentService.cancelShipment({
+            reqData,
+            authToken,
+          });
+          return res.status(200).json({
+            success: courierresponse.response,
+            response: courierresponse.message,
+          });
+        } else {
+          return res
+            .status(200)
+            .json({ success: false, message: "Shipment found" });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Error in cancel shipment", error });
+    }
+  }
 
 }
 
