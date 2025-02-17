@@ -24,7 +24,7 @@ router.get('/order/list',  OrderController.getOrderList);
 router.get('/location/:pincode',  OrderController.getLocationBypinCode);
 router.get('/states',  OrderController.getAllStates);
 router.get('/countries',  OrderController.getAllCountries);
-router.post('/order/create',  OrderController.cancelOrder);
+router.post('/order/create',  OrderController.createOrder);
 router.post('/order/cancel',  OrderController.cancelOrder);
 router.post('/ship/price-list',  ShipmentController.priceList);
 router.post('/ship/courier-list',  ShipmentController.courierList);
