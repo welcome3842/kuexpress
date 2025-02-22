@@ -145,12 +145,12 @@ class OrderController {
         ebill_expiry_date.setDate(ebill_expiry_date.getDate() + 15);
 
         var invoiceDetail = {};
-        invoiceDetail['userId']             = userId;
-        invoiceDetail['orderId']            = 1;
-        invoiceDetail['invoice_number']     = 'INB'+orderDetail['orderNumebr'];
-        invoiceDetail['ebill_number']       = 'ENB'+orderDetail['orderNumebr'];
-        invoiceDetail['invoice_date']       = orderDetail['orderDate'];
-        invoiceDetail['ebill_expiry_date']  = ebill_expiry_date;
+        invoiceDetail['userId'] = userId;
+        invoiceDetail['orderId'] = orderId;
+        invoiceDetail['invoice_number'] = 'INB' + orderDetail['orderNumebr'];
+        invoiceDetail['ebill_number'] = 'ENB' + orderDetail['orderNumebr'];
+        invoiceDetail['invoice_date'] = orderDetail['orderDate'];
+        invoiceDetail['ebill_expiry_date'] = ebill_expiry_date;
         await Invoice.create(invoiceDetail);
 
         return res.status(200).json({ "success": true, message: "Order created successfully" });
@@ -162,7 +162,17 @@ class OrderController {
   }
   static async getOrderList(req, res) {
     try {
+      var reqData = req.body;
+      const orderStatus = reqData.orderStatus ? reqData.orderStatus : '';
+      if (orderStatus < 0 || orderStatus > 9) {
+        return res.status(400).json({ "success": false, message: 'Order status allowed in single digit between 0-9' });
+      }
+      let filterData = {};
+      if (orderStatus) {
+        filterData.status = orderStatus;
+      }
       const orders = await db.Order.findAll({
+        where: filterData,
         include: [
           {
             model: db.ShippingAddress,
@@ -175,8 +185,13 @@ class OrderController {
           {
             model: db.PackageDetails,
             as: 'packageDetails'
+          },
+          {
+            model: db.Invoice,
+            as: 'invoice'
           }]
       });
+
       if (orders) {
         return res.status(200).json({ "success": true, "data": orders });
       }
