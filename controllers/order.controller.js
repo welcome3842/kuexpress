@@ -162,8 +162,7 @@ class OrderController {
   }
   static async getOrderList(req, res) {
     try {
-      var reqData = req.body;
-      const orderStatus = reqData.orderStatus ? reqData.orderStatus : '';
+      const orderStatus = req.query.orderStatus ? req.query.orderStatus : '';
       if (orderStatus < 0 || orderStatus > 9) {
         return res.status(400).json({ "success": false, message: 'Order status allowed in single digit between 0-9' });
       }
