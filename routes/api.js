@@ -30,6 +30,7 @@ router.post('/ship/price-list',  ShipmentController.priceList);
 router.post('/ship/courier-list',  ShipmentController.courierList);
 router.post('/ship/create-shipment',  ShipmentController.createShipment);
 router.post('/ship/cancel-shipment',  ShipmentController.cancelShipment);
+router.post('/ship/track-shipment',  ShipmentController.trackShipment);
 
 router.get('/products/list',  ProductController.getProductList);
 
