@@ -31,6 +31,7 @@ router.post('/ship/courier-list',  ShipmentController.courierList);
 router.post('/ship/create-shipment',  ShipmentController.createShipment);
 router.post('/ship/cancel-shipment',  ShipmentController.cancelShipment);
 router.post('/ship/track-shipment',  ShipmentController.trackShipment);
+router.post('/order/return',  OrderController.returnOrder);
 
 router.get('/products/list',  ProductController.getProductList);
 
