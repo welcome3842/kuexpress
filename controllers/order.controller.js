@@ -367,6 +367,41 @@ class OrderController {
       return res.status(500).json({ message: 'Error in return initiate', error });
     }
   }
+  static async getReturnOrderList(req, res) {
+    try {
+      const orderStatus = req.query.orderStatus ? req.query.orderStatus : '';
+      if (orderStatus < 0 || orderStatus > 9) {
+        return res.status(400).json({ "success": false, message: 'Order status allowed in single digit between 0-9' });
+      }
+      let filterData = {};
+      if (orderStatus) {
+        filterData.status = orderStatus;
+      }
+      const orders = await db.ReturnOrder.findAll({
+        where: filterData,
+        include: [
+          {
+            model: db.ShippingAddress,
+            as: 'buyerDetails'
+          },
+          {
+            model: db.OrderProduct,
+            as: 'productDetails'
+          },
+          {
+            model: db.PackageDetails,
+            as: 'packageDetails'
+          }]
+      });
+
+      if (orders) {
+        return res.status(200).json({ "success": true, "data": orders });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error to fetching return orders');
+    }
+  }
 }
 
 module.exports = OrderController;

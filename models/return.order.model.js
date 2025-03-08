@@ -2,19 +2,16 @@ module.exports = (sequelize, Sequelize) => {
   class ReturnOrder extends Sequelize.Model {
     static associate(models) {
       ReturnOrder.hasMany(models.ShippingAddress, {
-        foreignKey: 'orderId', as: 'buyerDetails'
+        foreignKey: 'returnId', as: 'buyerDetails'
       });
       ReturnOrder.hasMany(models.OrderProduct, {
-        foreignKey: 'orderId', as: 'productDetails'
+        foreignKey: 'returnId', as: 'productDetails'
       });
       ReturnOrder.hasMany(models.PackageDetails, {
-        foreignKey: 'orderId', as: 'packageDetails'
+        foreignKey: 'returnId', as: 'packageDetails'
       });
       ReturnOrder.hasMany(models.UserAddress, {
-        foreignKey: 'orderId', as: 'pickupDetails'
-      });
-      ReturnOrder.hasMany(models.Invoice, {
-        foreignKey: 'orderId', as: 'invoice'
+        foreignKey: 'returnId', as: 'pickupDetails'
       });
     }
   }
