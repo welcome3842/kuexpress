@@ -5,7 +5,9 @@ const AuthController    =  require('../controllers/auth.controller');
 const OrderController    =  require('../controllers/order.controller');
 const ShipmentController    =  require('../controllers/shipment.controller');
 const UserController    =  require('../controllers/user.controller');
+const WalletController    =  require('../controllers/wallet.controller');
 const ProductController    =  require('../controllers/product.controller');
+
 
 router.post('/auth/login', AuthController.login);
 router.post('/auth/signup',  AuthController.register);
@@ -29,8 +31,9 @@ router.post('/order/cancel',  OrderController.cancelOrder);
 router.post('/ship/price-list',  ShipmentController.priceList);
 router.post('/ship/courier-list',  ShipmentController.courierList);
 router.post('/ship/create-shipment',  ShipmentController.createShipment);
+router.get("/wallet/balance/:userId", WalletController.getWalletBalance);
 router.post('/ship/cancel-shipment',  ShipmentController.cancelShipment);
-
 router.get('/products/list',  ProductController.getProductList);
+
 
 module.exports = router;

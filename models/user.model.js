@@ -1,5 +1,14 @@
 module.exports = (sequelize, Sequelize) => {
-  class User extends Sequelize.Model {}
+  class User extends Sequelize.Model {
+
+    static associate(models) {
+      User.hasOne(models.Wallet, {
+        foreignKey: 'userId',
+        as: 'wallet',
+      });
+    }
+
+  }
   User.init(
     {
       id: {
