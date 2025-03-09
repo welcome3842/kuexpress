@@ -8,6 +8,8 @@ const ShippingAddress = db.ShippingAddress;
 const BillingAddress = db.BillingAddress;
 const OrderProduct = db.OrderProduct;
 const PackageDetails = db.PackageDetails;
+const UserAddress = db.UserAddress;
+const Invoice = db.Invoice;
 const nodemailer = require('nodemailer');
 const { password } = require('../config/db.config');
 
@@ -32,12 +34,14 @@ class OrderController {
     isBillingAddress: Joi.boolean().optional(),
     productDetails: Joi.array().optional(),
     packageDetails: Joi.object().optional(),
+    pickupDetails: Joi.object().optional(),
   });
   static async createOrder(req, res) {
     try {
       if (req.method == "POST") {
         var reqData = req.body;
         var userId = reqData.userId;
+
         //parameter used for the Buyer details. This data is saving into shippingaddress table
         reqData['userId'] = userId;
         reqData['name'] = reqData.buyerDetails.name;
@@ -89,16 +93,35 @@ class OrderController {
         if (shippingaddress) {
           await BillingAddress.create(reqData);
         }
+        //pickup details
+        var pickupDetail = {};
+        pickupDetail['userId'] = userId;
+        pickupDetail['orderId'] = orderId;
+        pickupDetail['contactPerson'] = reqData.pickupDetails.contactPerson;
+        pickupDetail['contactNumber'] = reqData.pickupDetails.contactNumber;
+        pickupDetail['email'] = reqData.pickupDetails.email;
+        pickupDetail['alternateNumber'] = reqData.pickupDetails.alternateNumber;
+        pickupDetail['address'] = reqData.pickupDetails.address;
+        pickupDetail['landmark'] = reqData.pickupDetails.landmark;
+        pickupDetail['pinCode'] = reqData.pickupDetails.pinCode;
+        pickupDetail['city'] = reqData.pickupDetails.city;
+        pickupDetail['state'] = reqData.pickupDetails.state;
+        pickupDetail['country'] = reqData.pickupDetails.country;
+        pickupDetail['tagAddress'] = reqData.pickupDetails.tagAddress;
+        pickupDetail['status'] = reqData.pickupDetails.status;
+        pickupDetail['isDefaultAddress'] = reqData.pickupDetails.isDefaultAddress;
+
+        await UserAddress.create(pickupDetail);
 
         var packageDetail = {};
-        packageDetail['orderId']            = orderId;
-        packageDetail['deadWeight']         = reqData.packageDetails.deadWeight;
-        packageDetail['packageDimensions']  = reqData.packageDetails.packageDimensions;
-        packageDetail['volumetricWeight']   = reqData.packageDetails.volumetricWeight;
-        packageDetail['applicableWeight']   = reqData.packageDetails.applicableWeight;
-        packageDetail['length']             = reqData.packageDetails.length;
-        packageDetail['width']              = reqData.packageDetails.width;
-        packageDetail['height']             = reqData.packageDetails.height;
+        packageDetail['orderId'] = orderId;
+        packageDetail['deadWeight'] = reqData.packageDetails.deadWeight;
+        packageDetail['packageDimensions'] = reqData.packageDetails.packageDimensions;
+        packageDetail['volumetricWeight'] = reqData.packageDetails.volumetricWeight;
+        packageDetail['applicableWeight'] = reqData.packageDetails.applicableWeight;
+        packageDetail['length'] = reqData.packageDetails.length;
+        packageDetail['width'] = reqData.packageDetails.width;
+        packageDetail['height'] = reqData.packageDetails.height;
         await PackageDetails.create(packageDetail);
         //parameter used for the product details. This data is saving into shippingaddress table
         var products = reqData.productDetails;
@@ -117,6 +140,18 @@ class OrderController {
           OrderProduct.create(productDetail);
         });
         //const result = await OrderProduct.bulkCreate(products); // I wil do it later
+        //generate invoice
+        let ebill_expiry_date = new Date(orderDetail['orderDate']);
+        ebill_expiry_date.setDate(ebill_expiry_date.getDate() + 15);
+
+        var invoiceDetail = {};
+        invoiceDetail['userId'] = userId;
+        invoiceDetail['orderId'] = orderId;
+        invoiceDetail['invoice_number'] = 'INB' + orderDetail['orderNumebr'];
+        invoiceDetail['ebill_number'] = 'ENB' + orderDetail['orderNumebr'];
+        invoiceDetail['invoice_date'] = orderDetail['orderDate'];
+        invoiceDetail['ebill_expiry_date'] = ebill_expiry_date;
+        await Invoice.create(invoiceDetail);
 
         return res.status(200).json({ "success": true, message: "Order created successfully" });
       }
@@ -127,7 +162,16 @@ class OrderController {
   }
   static async getOrderList(req, res) {
     try {
+      const orderStatus = req.query.orderStatus ? req.query.orderStatus : '';
+      if (orderStatus < 0 || orderStatus > 9) {
+        return res.status(400).json({ "success": false, message: 'Order status allowed in single digit between 0-9' });
+      }
+      let filterData = {};
+      if (orderStatus) {
+        filterData.status = orderStatus;
+      }
       const orders = await db.Order.findAll({
+        where: filterData,
         include: [
           {
             model: db.ShippingAddress,
@@ -140,14 +184,79 @@ class OrderController {
           {
             model: db.PackageDetails,
             as: 'packageDetails'
+          },
+          {
+            model: db.Invoice,
+            as: 'invoice'
           }]
       });
+
       if (orders) {
         return res.status(200).json({ "success": true, "data": orders });
       }
     } catch (error) {
       console.error(error);
       res.status(500).send('Error fetching orders with orders');
+    }
+  }
+  static async getLocationBypinCode(req, res) {
+    try {
+      const pincode = req.params.pincode;
+      const sql2 = "SELECT * FROM locations WHERE pincode = :pincode LIMIT 1";
+      const result = await db.sequelize.query(sql2, {
+        replacements: { pincode: pincode },
+        type: db.Sequelize.QueryTypes.SELECT
+      });
+
+      if (result.length > 0) {
+        return res.status(200).json({ success: true, data: result });
+      } else {
+        return res.status(404).json({ success: false, message: 'Pin code not found' });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching pin code');
+    }
+  }
+  static async getAllStates(req, res) {
+    try {
+      let sql2 = "SELECT * FROM states";
+      const result = await db.sequelize.query(sql2);
+      if (result.length > 0) {
+        return res.status(200).json({ "success": true, "data": result });
+      } else {
+        res.status(404).send('States not found');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching states');
+    }
+  }
+  static async getAllCountries(req, res) {
+    try {
+      let countries = "SELECT * FROM countries";
+      const result = await db.sequelize.query(countries);
+      if (result.length > 0) {
+        return res.status(200).json({ "success": true, "data": result[0] });
+      } else {
+        res.status(404).send('Countries not found');
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching country');
+    }
+  }
+  static async cancelOrder(req, res) {
+    try {
+      var reqData = req.body;
+      const cancelOrder = await Order.findOne({ where: { orderNumebr: reqData.orderNumebr } });
+      if (cancelOrder) {
+        await cancelOrder.update({ status: 5 });
+        return res.status(200).json({ "success": true, message: "Order canceled successfully" });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in cancelling order');
     }
   }
 }
