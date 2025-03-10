@@ -15,6 +15,10 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER,
         allowNull: true,
       },
+      returnId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+      },
       contactPerson: {
         type: Sequelize.STRING,
         allowNull: true,

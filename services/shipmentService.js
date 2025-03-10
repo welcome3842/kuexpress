@@ -101,3 +101,23 @@ exports.createShipment = async ({ payload, authToken, }) => {
     return error.response?.data;
   }
 };
+
+exports.trackShipment = async ({ reqData, authToken, }) => {
+
+  try {
+    const response = await axios.post(
+      `${apiBaseUrl}/franchise/shipments/track_shipment`,
+      reqData,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    return error.response?.data;
+  }
+};
