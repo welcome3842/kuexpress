@@ -181,7 +181,7 @@ class ShipmentController {
         if (loginResponse && loginResponse.status) {
           const authToken = loginResponse.data;
           const shipresponse = await shipmentService.createShipment({
-            payload,
+            reqData,
             authToken,
           });
 

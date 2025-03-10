@@ -19,10 +19,14 @@ db.BillingAddress = require('./billingAddress.model')(sequelize, Sequelize);
 db.OrderProduct = require('./orderProduct.model')(sequelize, Sequelize);
 db.PackageDetails = require('./packageDetail.model')(sequelize, Sequelize);
 db.UserAddress = require('./userAddress.model')(sequelize, Sequelize);
+
+db.Wallet = require('./wallet.model')(sequelize, Sequelize);
+
 db.Invoice = require('./invoice.model')(sequelize, Sequelize);
 db.Product = require('./product.model')(sequelize, Sequelize);
 db.Category = require('./category.model')(sequelize, Sequelize);
 db.ReturnOrder = require('./return.order.model')(sequelize, Sequelize);
+
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
     db[modelName].associate(db);
