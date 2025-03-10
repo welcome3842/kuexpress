@@ -298,7 +298,7 @@ class OrderController {
         orderDetail['gstAmount'] = reqData.orderDetails.gstAmount;
         orderDetail['gstPercentage'] = reqData.orderDetails.gstPercentage;
         orderDetail['totalAmount'] = reqData.orderDetails.totalAmount;
-        orderDetail['status'] = 1;
+        orderDetail['status'] = 8;
         orderDetail['orderDate'] = reqData.orderDetails.orderDate;
         orderDetail['orderTag'] = reqData.orderDetails.orderTag;
         orderDetail['resellerName'] = reqData.orderDetails.resellerName;
