@@ -26,6 +26,7 @@ db.Invoice = require('./invoice.model')(sequelize, Sequelize);
 db.Product = require('./product.model')(sequelize, Sequelize);
 db.Category = require('./category.model')(sequelize, Sequelize);
 db.ReturnOrder = require('./return.order.model')(sequelize, Sequelize);
+db.UserCompanies = require('./userCompany.model')(sequelize, Sequelize);
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
