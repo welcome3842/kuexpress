@@ -7,6 +7,7 @@ const ShipmentController    =  require('../controllers/shipment.controller');
 const UserController    =  require('../controllers/user.controller');
 const WalletController    =  require('../controllers/wallet.controller');
 const ProductController    =  require('../controllers/product.controller');
+const CompanyController    =  require('../controllers/company.controller');
 
 
 router.post('/auth/login', AuthController.login);
@@ -36,6 +37,8 @@ router.post('/ship/cancel-shipment',  ShipmentController.cancelShipment);
 router.post('/ship/track-shipment',  ShipmentController.trackShipment);
 router.post('/order/return',  OrderController.returnOrder);
 router.get('/order/return/list',  OrderController.getReturnOrderList);
+router.post('/company/create',  CompanyController.createCompany);
+router.get('/company/list',  CompanyController.companyList);
 
 router.get('/products/list',  ProductController.getProductList);
 
