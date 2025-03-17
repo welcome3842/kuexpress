@@ -8,6 +8,8 @@ const UserController    =  require('../controllers/user.controller');
 const WalletController    =  require('../controllers/wallet.controller');
 const ProductController    =  require('../controllers/product.controller');
 const TaskController    =  require('../controllers/task.controller');
+const CompanyController    =  require('../controllers/company.controller');
+const UploadController    =  require('../controllers/upload.controller');
 
 
 router.post('/auth/login', AuthController.login);
@@ -37,6 +39,8 @@ router.post('/ship/cancel-shipment',  ShipmentController.cancelShipment);
 router.post('/ship/track-shipment',  ShipmentController.trackShipment);
 router.post('/order/return',  OrderController.returnOrder);
 router.get('/order/return/list',  OrderController.getReturnOrderList);
+router.post('/company/create',  CompanyController.createCompany);
+router.get('/company/list',  CompanyController.companyList);
 
 router.get('/products/list',  ProductController.getProductList);
 
@@ -45,6 +49,6 @@ router.get("/tasks", TaskController.getAllTasks);
 router.get("/task/:id", TaskController.getTaskById);
 router.put("/task/:id", TaskController.updateTask);
 router.delete("/task/:id", TaskController.deleteTask);
-
+router.post("/upload", UploadController.uploadImage);
 
 module.exports = router;
