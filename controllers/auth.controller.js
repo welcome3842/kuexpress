@@ -45,6 +45,21 @@ class AuthController {
     try {
       var reqData = req.body;
       reqData['password'] = await bcrypt.hash(reqData['password'], 10);
+      reqData['userRole'] = 4;
+      const user = await User.create(reqData);
+      return res.status(201).json({ message: 'User registered successfully', user });
+    } catch (error) {
+      return res.status(500).json({ message: 'Error registering user', error });
+    }
+  }
+  static async vendorRregister(req, res) {
+
+    const { error } = AuthController.registrationSchema.validate(req.body);
+    if (error) return res.status(400).json({ message: error.details[0].message });
+
+    try {
+      var reqData = req.body;
+      reqData['password'] = await bcrypt.hash(reqData['password'], 10);
       reqData['userRole'] = 3;
       const user = await User.create(reqData);
       return res.status(201).json({ message: 'User registered successfully', user });
@@ -60,16 +75,21 @@ class AuthController {
     const { email, password } = req.body;
 
     try {
-      const user = await User.findOne({ where: { email } });
-	  
+      let userdata = {};
+      let user = await User.findOne({ where: { email } });
+
       if (!user) return res.status(404).json({ "success": false, "error":'User not found!' });
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
-	  
+
       if (!isPasswordValid) return res.status(401).json({ "success": false, "error":'Invalid password' });
 
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      return res.status(200).json({ "success": true, token });
+      let token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10d' });
+      userdata['expiresIn'] = 864000;
+      userdata['token'] = token;
+      userdata['user'] = user;
+
+      return res.status(200).json({ "success": true, "data": userdata });
     } catch (error) {
       return res.status(500).json({ message: 'Error logging in', error });
     }
