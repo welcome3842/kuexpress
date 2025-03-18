@@ -75,6 +75,7 @@ class AuthController {
     const { email, password } = req.body;
 
     try {
+      let userdata = {};
       let user = await User.findOne({ where: { email } });
 
       if (!user) return res.status(404).json({ "success": false, "error":'User not found!' });
@@ -84,10 +85,11 @@ class AuthController {
       if (!isPasswordValid) return res.status(401).json({ "success": false, "error":'Invalid password' });
 
       let token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '10d' });
-      // user['expiresIn'] = 864000;
-      // user['token'] = token;
-      // delete user.password;
-      return res.status(200).json({ "success": true, token });
+      userdata['expiresIn'] = 864000;
+      userdata['token'] = token;
+      userdata['user'] = user;
+
+      return res.status(200).json({ "success": true, "data": userdata });
     } catch (error) {
       return res.status(500).json({ message: 'Error logging in', error });
     }
