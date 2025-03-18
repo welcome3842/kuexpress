@@ -12,6 +12,7 @@ const CompanyController    =  require('../controllers/company.controller');
 
 router.post('/auth/login', AuthController.login);
 router.post('/auth/signup',  AuthController.register);
+router.post('/auth/vendor/signup',  AuthController.vendorRregister);
 router.post('/auth/forgotPassword',  AuthController.forgotPassword);
 router.post('/auth/otpVerify',  AuthController.otpVerify);
 router.post('/auth/passwordUpdate',  AuthController.passwordUpdate);
@@ -22,6 +23,8 @@ router.put('/useraddress/update/:id',  UserController.updateUserAddress);
 router.delete('/useraddress/delete/:id',  UserController.delUserAddress);
 router.post('/useraddress/generateotp',  UserController.generateAddressOtp);
 router.post('/verifyaddress',  UserController.verifyAddress);
+router.post('/user/kyc',  UserController.createKyc);
+router.get('/user/kyc/list',  UserController.getUserKycList);
 
 router.get('/order/list',  OrderController.getOrderList);
 router.get('/location/:pincode',  OrderController.getLocationBypinCode);

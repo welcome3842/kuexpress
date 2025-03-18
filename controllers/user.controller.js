@@ -6,6 +6,7 @@ const db = require('../models');
 const Otp = db.Otp;
 const { Op } = require('sequelize');
 const UserAddress = db.UserAddress;
+const UserKyc = db.UserKyc;
 
 class UserController {
 
@@ -25,6 +26,19 @@ class UserController {
     tagAddress: Joi.string().allow(null, '').optional(),
     status: Joi.string().allow(null, '').optional(),
     isDefaultAddress: Joi.allow(null, '').optional(),
+  });
+
+  static userKycSchema = Joi.object({
+    userId: Joi.string().required(),
+    kycType: Joi.allow(null, '').optional(),
+    documentType1: Joi.string().required(),
+    documentType2: Joi.string().required(),
+    documentNumber1: Joi.string().required(),
+    documentNumber2: Joi.string().required(),
+    verifiedOn: Joi.string().required(),
+    kycStatus: Joi.string().required(),
+    currentBusinessType: Joi.allow(null, '').optional(),
+    verificationMethodUsed: Joi.allow(null, '').optional(),
   });
 
   static async createAddress(req, res) {
@@ -175,6 +189,49 @@ class UserController {
       }
     } catch (error) {
       return res.status(500).json({ success: false, message: error });
+    }
+  }
+
+  static async createKyc(req, res) {
+    try {
+      if (req.method == "POST") {
+        var reqData = req.body;
+        var userId = reqData.userId;
+
+        reqData['userId']                 = userId;
+        reqData['kycType']                = reqData.kycType;
+        reqData['documentType1']          = reqData.documentType1;
+        reqData['documentType2']          = reqData.documentType2;
+        reqData['documentNumber1']        = reqData.documentNumber1;
+        reqData['documentNumber2']        = reqData.documentNumber2;
+        reqData['verifiedOn']             = reqData.verifiedOn;
+        reqData['kycStatus']              = reqData.kycStatus;
+        reqData['currentBusinessType']    = reqData.currentBusinessType;
+        reqData['verificationMethodUsed'] = reqData.verificationMethodUsed;
+
+        const { error } = UserController.userKycSchema.validate(reqData);
+        if (error) return res.status(400).json({ message: error.details[0].message });
+
+        await UserKyc.create(reqData);
+
+        return res.status(200).json({ "success": true, message: "User KYC details saved successfully" });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: 'Error in saving data', error });
+    }
+  }
+  static async getUserKycList(req, res) {
+    try {
+      const userkyc = await db.UserKyc.findAll({
+        order: [['id', 'DESC']]
+      });
+      if (userkyc) {
+        return res.status(200).json({ "success": true, "data": userkyc });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error fetching kyc data');
     }
   }
 }
