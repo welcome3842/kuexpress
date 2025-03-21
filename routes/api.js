@@ -27,8 +27,11 @@ router.post('/useraddress/generateotp',  UserController.generateAddressOtp);
 router.post('/verifyaddress',  UserController.verifyAddress);
 router.post('/user/kyc',  UserController.createKyc);
 router.get('/user/kyc/list',  UserController.getUserKycList);
+router.get('/vendors',  UserController.vendorList);
+router.get('/users',  UserController.userList);
+router.delete('/user/delete/:id',  UserController.deleteUser);
 
-router.get('/order/list',  OrderController.getOrderList);
+router.get('/order/list', authorize, OrderController.getOrderList);
 router.get('/location/:pincode',  OrderController.getLocationBypinCode);
 router.get('/states',  OrderController.getAllStates);
 router.get('/countries',  OrderController.getAllCountries);

@@ -20,6 +20,7 @@ class AuthController {
     companyName: Joi.string().required(),
     orderInMonth: Joi.string().required(),
     password: Joi.string().min(6).required(),
+    status: Joi.number(),
   });
 
   static loginSchema = Joi.object({
@@ -35,6 +36,7 @@ class AuthController {
     companyName: Joi.string().required(),
     orderInMonth: Joi.string().required(),
     password: Joi.string(),
+    
   });
 
   static async register(req, res) {
@@ -47,9 +49,9 @@ class AuthController {
       reqData['password'] = await bcrypt.hash(reqData['password'], 10);
       reqData['userRole'] = 4;
       const user = await User.create(reqData);
-      return res.status(201).json({ message: 'User registered successfully', user });
+      return res.status(201).json({success:true, message: 'User registered successfully', user });
     } catch (error) {
-      return res.status(500).json({ message: 'Error registering user', error });
+      return res.status(500).json({success:false, message: 'Error registering user', error });
     }
   }
   static async vendorRregister(req, res) {
@@ -62,9 +64,9 @@ class AuthController {
       reqData['password'] = await bcrypt.hash(reqData['password'], 10);
       reqData['userRole'] = 3;
       const user = await User.create(reqData);
-      return res.status(201).json({ message: 'User registered successfully', user });
+      return res.status(201).json({success:true, message: 'User registered successfully', user });
     } catch (error) {
-      return res.status(500).json({ message: 'Error registering user', error });
+      return res.status(500).json({ success:false, message: 'Error registering vendor', error });
     }
   }
 
