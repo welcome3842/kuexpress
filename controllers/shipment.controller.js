@@ -80,11 +80,16 @@ class ShipmentController {
           });
           let courierList = [];
           if (courierresponse && courierresponse.data) {
-            console.log(courierresponse.data);
+            const roleId = req.user.userRole;
+            let ccharge = 1.1;
+            if(roleId==4)
+            {
+              ccharge = 1.2;
+            }
             courierList = courierresponse.data.map(courier => {
               return {
                   ...courier,
-                  total_price: courier.total_price ? (courier.total_price * 1.1).toFixed(2) : courier.total_price // Increase by 10%
+                  total_price: courier.total_price ? (courier.total_price * ccharge).toFixed(2) : courier.total_price 
               };
           });
           }
@@ -269,12 +274,12 @@ class ShipmentController {
           });
           return res.status(200).json({
             success: courierresponse.response,
-            response: courierresponse.message,
+            response: courierresponse,
           });
         } else {
           return res
             .status(200)
-            .json({ success: false, message: "Shipment found" });
+            .json({ success: false, message: "Shipment not found" });
         }
       }
     } catch (error) {

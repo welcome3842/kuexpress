@@ -172,8 +172,8 @@ class OrderController {
       if (orderStatus) {
         filterData.status = orderStatus;
       }
-      if(roleId == 3 || roleId == 4)
-      {
+      
+      if (![1, 2].includes(roleId)) {
         filterData.userId = req.user.id;
       }
 

@@ -38,7 +38,7 @@ router.get('/countries',  OrderController.getAllCountries);
 router.post('/order/create',  OrderController.createOrder);
 router.post('/order/cancel',  OrderController.cancelOrder);
 router.post('/ship/price-list',  ShipmentController.priceList);
-router.post('/ship/courier-list',  ShipmentController.courierList);
+router.post('/ship/courier-list', authorize, ShipmentController.courierList);
 router.post('/ship/create-shipment',  ShipmentController.createShipment);
 router.get("/wallet/balance/:userId", WalletController.getWalletBalance);
 router.post('/ship/cancel-shipment',  ShipmentController.cancelShipment);
