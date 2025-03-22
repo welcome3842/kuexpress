@@ -41,6 +41,56 @@ class UserController {
     verificationMethodUsed: Joi.allow(null, '').optional(),
   });
 
+  static async vendorList(req, res) {
+
+      try {           
+           let filterData = { userRole: "3" };          
+           const vendors = await db.User.findAll({
+             where: filterData,             
+               order: [['id', 'DESC']] 
+           });
+     
+           if (vendors) {
+             return res.status(200).json({ "success": true, "vendors": vendors });
+           }
+         } catch (error) {           
+           res.status(500).send('Error fetching vendor list');
+         }
+    
+  }
+
+  static async userList(req, res) {
+
+    try {           
+      let filterData = { userRole: "4" };          
+      const users = await db.User.findAll({
+        where: filterData,             
+          order: [['id', 'DESC']] 
+       });
+
+      if (users) {
+        return res.status(200).json({ "success": true, "users": users });
+      }
+    } catch (error) {           
+      res.status(500).send('Error fetching users list');
+    }
+  }
+
+  static async deleteUser(req, res) {
+    try {
+      var userId = req.params.id;
+      if (userId) {
+        const user = await db.User.destroy({
+          where: { id: userId },  
+        });
+        return res.status(200).json({ "success": true, message: "User deleted successfully" });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in deleting user');
+    }
+  }
+
   static async createAddress(req, res) {
 
     const { error } = UserController.addressRegSchema.validate(req.body);
@@ -55,8 +105,11 @@ class UserController {
     }
   }
   static async getUserAddressList(req, res) {
+
     try {
+      let filterData = { userId: req.userId };
       const userAddress = await db.UserAddress.findAll({
+        where: filterData,
         order: [['id', 'DESC']]
       });
       if (userAddress) {

@@ -27,10 +27,10 @@ class OrderController {
     country: Joi.string().required(),
     buyerDetails: Joi.object().optional(),
     alternateMobile: Joi.string().allow(null, '').optional(),
-    companyName: Joi.string().optional(),
-    gstin: Joi.string().optional(),
+    companyName: Joi.string().allow(null, '').optional(),
+    gstin: Joi.string().allow(null, '').optional(),
     orderDetails: Joi.object().optional(),
-    userId: Joi.string().optional(),
+    userId: Joi.number().optional(),
     landmark: Joi.string().optional(),
     isBillingAddress: Joi.boolean().optional(),
     productDetails: Joi.array().optional(),
@@ -163,6 +163,7 @@ class OrderController {
   }
   static async getOrderList(req, res) {
     try {
+      console.log(req.userId);
       const orderStatus = req.query.orderStatus ? req.query.orderStatus : '';
       if (orderStatus < 0 || orderStatus > 9) {
         return res.status(400).json({ "success": false, message: 'Order status allowed in single digit between 0-9' });
@@ -170,6 +171,10 @@ class OrderController {
       let filterData = {};
       if (orderStatus) {
         filterData.status = orderStatus;
+      }
+      if(req.userId > 2)
+      {
+        filterData.userId = req.userId;
       }
       const orders = await db.Order.findAll({
         where: filterData,
@@ -189,7 +194,13 @@ class OrderController {
           {
             model: db.Invoice,
             as: 'invoice'
-          }]
+          },
+          {
+            model: db.UserAddress,
+            as: 'pickupDetails'
+          }
+        ],
+          order: [['id', 'DESC']] 
       });
 
       if (orders) {

@@ -80,7 +80,13 @@ class ShipmentController {
           });
           let courierList = [];
           if (courierresponse && courierresponse.data) {
-            courierList = courierresponse.data;
+            console.log(courierresponse.data);
+            courierList = courierresponse.data.map(courier => {
+              return {
+                  ...courier,
+                  total_price: courier.total_price ? (courier.total_price * 1.1).toFixed(2) : courier.total_price // Increase by 10%
+              };
+          });
           }
           return res.status(200).json({
             success: true,
@@ -138,20 +144,20 @@ class ShipmentController {
           "unique_order_number": "yes/no",
           "payment_method": "COD",
 
-          "consigner_name": addressData.name,
-          "consigner_phone": addressData.mobile,
-          "consigner_pincode": addressData.pinCode,
-          "consigner_city": addressData.city,
-          "consigner_state": addressData.state,
-          "consigner_address": addressData.address,
+          "consigner_name": pickupData.contactPerson,
+          "consigner_phone": pickupData.contactNumber ,
+          "consigner_pincode": pickupData.pinCode,
+          "consigner_city": pickupData.city,
+          "consigner_state": pickupData.state,
+          "consigner_address": pickupData.address,
           "consigner_gst_number": "06DSALI2367U1ZL",
 
-          "consignee_name": pickupData.contactPerson,
-          "consignee_phone": pickupData.contactNumber,
-          "consignee_pincode": pickupData.pinCode,
-          "consignee_city": pickupData.city,
-          "consignee_state": pickupData.state,
-          "consignee_address": pickupData.address,
+          "consignee_name": addressData.name,
+          "consignee_phone": addressData.mobile,
+          "consignee_pincode": addressData.pinCode,
+          "consignee_city": addressData.city,
+          "consignee_state": addressData.state,
+          "consignee_address": addressData.address,
           "consignee_gst_number": "06DSALI2367U1ZE",
 
           "products": productData,
