@@ -105,8 +105,11 @@ class UserController {
     }
   }
   static async getUserAddressList(req, res) {
+
     try {
+      let filterData = { userId: req.userId };
       const userAddress = await db.UserAddress.findAll({
+        where: filterData,
         order: [['id', 'DESC']]
       });
       if (userAddress) {

@@ -20,7 +20,7 @@ router.post('/auth/otpVerify',  AuthController.otpVerify);
 router.post('/auth/passwordUpdate',  AuthController.passwordUpdate);
 router.post('/auth/updateProfile/:id',  AuthController.updateProfile);
 router.post('/useraddress/create',  UserController.createAddress);
-router.get('/useraddress/list',  UserController.getUserAddressList);
+router.get('/useraddress/list', authorize,  UserController.getUserAddressList);
 router.put('/useraddress/update/:id',  UserController.updateUserAddress);
 router.delete('/useraddress/delete/:id',  UserController.delUserAddress);
 router.post('/useraddress/generateotp',  UserController.generateAddressOtp);

@@ -194,7 +194,12 @@ class OrderController {
           {
             model: db.Invoice,
             as: 'invoice'
-          }],
+          },
+          {
+            model: db.UserAddress,
+            as: 'pickupDetails'
+          }
+        ],
           order: [['id', 'DESC']] 
       });
 
