@@ -107,11 +107,12 @@ class UserController {
   static async getUserAddressList(req, res) {
 
     try {
-      let filterData = { userId: req.userId };
+      let filterData = { userId: req.user.id };
       const userAddress = await db.UserAddress.findAll({
         where: filterData,
         order: [['id', 'DESC']]
       });
+
       if (userAddress) {
         return res.status(200).json({ "success": true, "data": userAddress });
       }
