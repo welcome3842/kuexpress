@@ -163,7 +163,7 @@ class OrderController {
   }
   static async getOrderList(req, res) {
     try {
-      console.log(req.userId);
+      const roleId = req.user.userRole;
       const orderStatus = req.query.orderStatus ? req.query.orderStatus : '';
       if (orderStatus < 0 || orderStatus > 9) {
         return res.status(400).json({ "success": false, message: 'Order status allowed in single digit between 0-9' });
@@ -172,10 +172,11 @@ class OrderController {
       if (orderStatus) {
         filterData.status = orderStatus;
       }
-      if(req.userId > 2)
+      if(roleId == 3 || roleId == 4)
       {
-        filterData.userId = req.userId;
+        filterData.userId = req.user.id;
       }
+
       const orders = await db.Order.findAll({
         where: filterData,
         include: [
@@ -200,7 +201,7 @@ class OrderController {
             as: 'pickupDetails'
           }
         ],
-          order: [['id', 'DESC']] 
+          order: [['id', 'DESC']]
       });
 
       if (orders) {
