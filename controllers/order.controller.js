@@ -9,6 +9,7 @@ const BillingAddress = db.BillingAddress;
 const OrderProduct = db.OrderProduct;
 const PackageDetails = db.PackageDetails;
 const UserAddress = db.UserAddress;
+const PickupAddress = db.PickupAddress;
 const Invoice = db.Invoice;
 const ReturnOrder = db.ReturnOrder;
 const nodemailer = require('nodemailer');
@@ -112,7 +113,7 @@ class OrderController {
         pickupDetail['status'] = reqData.pickupDetails.status;
         pickupDetail['isDefaultAddress'] = reqData.pickupDetails.isDefaultAddress;
 
-        await UserAddress.create(pickupDetail);
+        await PickupAddress.create(pickupDetail);
 
         var packageDetail = {};
         packageDetail['orderId'] = orderId;
@@ -197,7 +198,7 @@ class OrderController {
             as: 'invoice'
           },
           {
-            model: db.UserAddress,
+            model: db.PickupAddress,
             as: 'pickupDetails'
           }
         ],
@@ -343,7 +344,7 @@ class OrderController {
         pickupDetail['status'] = reqData.pickupDetails.status;
         pickupDetail['isDefaultAddress'] = reqData.pickupDetails.isDefaultAddress;
 
-        await UserAddress.create(pickupDetail);
+        await PickupAddress.create(pickupDetail);
 
         var packageDetail = {};
         packageDetail['returnId'] = returnorderId;

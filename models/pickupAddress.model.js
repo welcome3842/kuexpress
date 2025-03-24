@@ -1,6 +1,6 @@
 module.exports = (sequelize, Sequelize) => {
-  class UserAddress extends Sequelize.Model { }
-  UserAddress.init(
+  class PickupAddress extends Sequelize.Model { }
+  PickupAddress.init(
     {
       id: {
         type: Sequelize.INTEGER,
@@ -78,8 +78,8 @@ module.exports = (sequelize, Sequelize) => {
     },
     {
       sequelize,
-      modelName: 'UserAddress',
-      tableName: 'useraddress',
+      modelName: 'PickupAddress',
+      tableName: 'pickupAddress',
       timestamps: true,
       indexes: [
         {
@@ -89,5 +89,5 @@ module.exports = (sequelize, Sequelize) => {
     }
   );
 
-  return UserAddress;
+  return PickupAddress;
 };
