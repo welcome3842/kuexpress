@@ -19,7 +19,7 @@ class ShipmentController {
       if (req.method == "POST") {
         var reqData = req.body;
         var userId = reqData.userId;
-
+        const roleId = req.user.userRole;
         const loginResponse = await authService.login();
 
         if (loginResponse && loginResponse.status) {
@@ -49,7 +49,17 @@ class ShipmentController {
           });
           let priceList = [];
           if (priceresponse && priceresponse.message) {
-            priceList = priceresponse.message;
+            let ccharge = 1.1;
+            if(roleId==4)
+            {
+              ccharge = 1.2;
+            }
+            priceList = priceresponse.message.map(courier => {
+              return {
+                  ...courier,
+                  total_price: courier.total_price ? (courier.total_price * ccharge).toFixed(2) : courier.total_price 
+              };
+          });
           }
           return res.status(200).json({
             success: true,
@@ -80,13 +90,9 @@ class ShipmentController {
           });
           let courierList = [];
           if (courierresponse && courierresponse.data) {
-            console.log(courierresponse.data);
-            courierList = courierresponse.data.map(courier => {
-              return {
-                  ...courier,
-                  total_price: courier.total_price ? (courier.total_price * 1.1).toFixed(2) : courier.total_price // Increase by 10%
-              };
-          });
+           
+           
+            courierList = courierresponse.data;
           }
           return res.status(200).json({
             success: true,
@@ -269,12 +275,12 @@ class ShipmentController {
           });
           return res.status(200).json({
             success: courierresponse.response,
-            response: courierresponse.message,
+            response: courierresponse,
           });
         } else {
           return res
             .status(200)
-            .json({ success: false, message: "Shipment found" });
+            .json({ success: false, message: "Shipment not found" });
         }
       }
     } catch (error) {

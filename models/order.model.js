@@ -1,19 +1,19 @@
 module.exports = (sequelize, Sequelize) => {
   class Order extends Sequelize.Model {
     static associate(models) {
-      Order.hasMany(models.ShippingAddress, {
+      Order.hasOne(models.ShippingAddress, {
         foreignKey: 'orderId', as: 'buyerDetails'
       });
       Order.hasMany(models.OrderProduct, {
         foreignKey: 'orderId', as: 'productDetails'
       });
-      Order.hasMany(models.PackageDetails, {
+      Order.hasOne(models.PackageDetails, {
         foreignKey: 'orderId', as: 'packageDetails'
       });
-      Order.hasMany(models.UserAddress, {
+      Order.hasOne(models.PickupAddress, {
         foreignKey: 'orderId', as: 'pickupDetails'
       });
-      Order.hasMany(models.Invoice, {
+      Order.hasOne(models.Invoice, {
         foreignKey: 'orderId', as: 'invoice'
       });
     }
