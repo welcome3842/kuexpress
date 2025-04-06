@@ -43,6 +43,8 @@ router.post('/ship/create-shipment',  ShipmentController.createShipment);
 router.get("/wallet/balance/:userId", WalletController.getWalletBalance);
 router.post('/ship/cancel-shipment',  ShipmentController.cancelShipment);
 router.post('/ship/track-shipment',  ShipmentController.trackShipment);
+router.post('/ship/calculator',  ShipmentController.shipmentCalculator);
+
 router.post('/order/return',  OrderController.returnOrder);
 router.get('/order/return/list',  OrderController.getReturnOrderList);
 router.post('/company/create',  CompanyController.createCompany);

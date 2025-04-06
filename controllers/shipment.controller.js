@@ -282,6 +282,33 @@ class ShipmentController {
       return res.status(500).json({ message: "Error in tracking shipment", error });
     }
   }
+  static async shipmentCalculator(req, res) {
+    try {
+      if (req.method == "POST") {
+        const reqData = req.body;
+        const loginResponse = await authService.login();
+
+        if (loginResponse && loginResponse.status) {
+          const authToken = loginResponse.data;
+          const courierresponse = await shipmentService.calculateShipment({
+            reqData,
+            authToken,
+          });
+          return res.status(200).json({
+            success: courierresponse.response,
+            response: courierresponse.message,
+          });
+        } else {
+          return res
+            .status(200)
+            .json({ success: false, message: "Shipment found" });
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Something went wrong", error });
+    }
+  }
 
 }
 

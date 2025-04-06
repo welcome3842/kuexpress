@@ -121,3 +121,21 @@ exports.trackShipment = async ({ reqData, authToken, }) => {
     return error.response?.data;
   }
 };
+exports.calculateShipment = async ({ reqData, authToken, }) => {
+
+  try {
+    const response = await axios.post(
+      `${apiBaseUrl}/franchise/shipments/calculate_pricing`,
+      reqData,
+      {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    return error.response?.data;
+  }
+};
