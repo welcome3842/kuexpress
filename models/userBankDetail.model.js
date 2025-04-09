@@ -1,6 +1,6 @@
 module.exports = (sequelize, Sequelize) => {
-  class UserCompany extends Sequelize.Model { }
-  UserCompany.init(
+  class UserBankDetail extends Sequelize.Model { }
+  UserBankDetail.init(
     {
       id: {
         type: Sequelize.INTEGER,
@@ -11,35 +11,35 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      companyId: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      companyName: {
+      bankName: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      companyEmail: {
+      accountNumber: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      brandName: {
+      ifsc: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      branch: {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      website: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      companyLogo: {
+      passbookPhoto: {
         type: Sequelize.STRING,
         allowNull: true,
       },
     },
     {
       sequelize,
-      modelName: 'UserCompany',
-      tableName: 'usercompanies',
+      modelName: 'UserBankDetail',
+      tableName: 'userbankdetails',
       timestamps: true,
       indexes: [
         {
@@ -49,5 +49,5 @@ module.exports = (sequelize, Sequelize) => {
     }
   );
 
-  return UserCompany;
+  return UserBankDetail;
 };
