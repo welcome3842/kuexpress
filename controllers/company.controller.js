@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const Joi = require('joi');
 const db = require('../models');
-const UserCompanies = db.UserCompanies;
+const UserCompany = db.UserCompany;
 const { password } = require('../config/db.config');
 
 class CompanyController {
@@ -17,7 +17,7 @@ class CompanyController {
     website: Joi.string().optional(),
     companyLogo: Joi.string().optional(),
   });
-  static async createCompany(req, res) {
+  static async createAndUpdateCompany(req, res) {
     try {
       if (req.method == "POST") {
         var reqData = req.body;
@@ -33,31 +33,25 @@ class CompanyController {
 
         const { error } = CompanyController.companySchema.validate(reqData);
         if (error) return res.status(400).json({ message: error.details[0].message });
+        let compDetails = await UserCompany.findOne({ where: { userId } });
+        console.log(compDetails.userId);
+        if (compDetails) {
+          compDetails = await UserCompany.update(
+            reqData,
+            {
+              where: { userId: compDetails.userId },
+              returning: true
+            }
+          );
+        }else {
+          compDetails = await UserCompany.create(reqData);
+        }
 
-        await UserCompanies.create(reqData);
-
-        return res.status(200).json({ "success": true, message: "Company details saved successfully" });
+        return res.status(200).json({ "success": true, message: "Company details updated successfully", "data": compDetails });
       }
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: 'Error in saving data', error });
-    }
-  }
-  static async companyList(req, res) {
-    try {
-      var userId = req.query.userId;
-      const userCompanies = await db.UserCompanies.findAll({
-        where: {
-          userId: userId
-        },
-        order: [['id', 'DESC']]
-      });
-      if (userCompanies) {
-        return res.status(200).json({ "success": true, "data": userCompanies });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error in fetching company details data');
     }
   }
 }

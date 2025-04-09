@@ -7,6 +7,7 @@ const Otp = db.Otp;
 const { Op } = require('sequelize');
 const UserAddress = db.UserAddress;
 const UserKyc = db.UserKyc;
+const UserBankDetail = db.UserBankDetail;
 
 class UserController {
 
@@ -41,37 +42,47 @@ class UserController {
     verificationMethodUsed: Joi.allow(null, '').optional(),
   });
 
+  static bankSchema = Joi.object({
+    userId: Joi.string().required(),
+    name: Joi.string().required(),
+    bankName: Joi.string().required(),
+    accountNumber: Joi.string().required(),
+    ifsc: Joi.string().required(),
+    branch: Joi.allow(null, '').optional(),
+    passbookPhoto: Joi.allow(null, '').optional(),
+  });
+
   static async vendorList(req, res) {
 
-      try {           
-           let filterData = { userRole: "3" };          
-           const vendors = await db.User.findAll({
-             where: filterData,             
-               order: [['id', 'DESC']] 
-           });
-     
-           if (vendors) {
-             return res.status(200).json({ "success": true, "vendors": vendors });
-           }
-         } catch (error) {           
-           res.status(500).send('Error fetching vendor list');
-         }
-    
+    try {
+      let filterData = { userRole: "3" };
+      const vendors = await db.User.findAll({
+        where: filterData,
+        order: [['id', 'DESC']]
+      });
+
+      if (vendors) {
+        return res.status(200).json({ "success": true, "vendors": vendors });
+      }
+    } catch (error) {
+      res.status(500).send('Error fetching vendor list');
+    }
+
   }
 
   static async userList(req, res) {
 
-    try {           
-      let filterData = { userRole: "4" };          
+    try {
+      let filterData = { userRole: "4" };
       const users = await db.User.findAll({
-        where: filterData,             
-          order: [['id', 'DESC']] 
-       });
+        where: filterData,
+        order: [['id', 'DESC']]
+      });
 
       if (users) {
         return res.status(200).json({ "success": true, "users": users });
       }
-    } catch (error) {           
+    } catch (error) {
       res.status(500).send('Error fetching users list');
     }
   }
@@ -81,7 +92,7 @@ class UserController {
       var userId = req.params.id;
       if (userId) {
         const user = await db.User.destroy({
-          where: { id: userId },  
+          where: { id: userId },
         });
         return res.status(200).json({ "success": true, message: "User deleted successfully" });
       }
@@ -252,15 +263,15 @@ class UserController {
         var reqData = req.body;
         var userId = reqData.userId;
 
-        reqData['userId']                 = userId;
-        reqData['kycType']                = reqData.kycType;
-        reqData['documentType1']          = reqData.documentType1;
-        reqData['documentType2']          = reqData.documentType2;
-        reqData['documentNumber1']        = reqData.documentNumber1;
-        reqData['documentNumber2']        = reqData.documentNumber2;
-        reqData['verifiedOn']             = reqData.verifiedOn;
-        reqData['kycStatus']              = reqData.kycStatus;
-        reqData['currentBusinessType']    = reqData.currentBusinessType;
+        reqData['userId'] = userId;
+        reqData['kycType'] = reqData.kycType;
+        reqData['documentType1'] = reqData.documentType1;
+        reqData['documentType2'] = reqData.documentType2;
+        reqData['documentNumber1'] = reqData.documentNumber1;
+        reqData['documentNumber2'] = reqData.documentNumber2;
+        reqData['verifiedOn'] = reqData.verifiedOn;
+        reqData['kycStatus'] = reqData.kycStatus;
+        reqData['currentBusinessType'] = reqData.currentBusinessType;
         reqData['verificationMethodUsed'] = reqData.verificationMethodUsed;
 
         const { error } = UserController.userKycSchema.validate(reqData);
@@ -286,6 +297,42 @@ class UserController {
     } catch (error) {
       console.error(error);
       res.status(500).send('Error fetching kyc data');
+    }
+  }
+  static async createAndUpdateBankDetails(req, res) {
+    try {
+      if (req.method == "POST") {
+        var reqData = req.body;
+        var userId = reqData.userId;
+
+        reqData['userId'] = userId;
+        reqData['name'] = reqData.name;
+        reqData['bankName'] = reqData.bankName;
+        reqData['accountNumber'] = reqData.accountNumber;
+        reqData['ifsc'] = reqData.ifsc;
+        reqData['branch'] = reqData.branch;
+        reqData['passbookPhoto'] = reqData.passbookPhoto;
+
+        const { error } = UserController.bankSchema.validate(reqData);
+        if (error) return res.status(400).json({ message: error.details[0].message });
+        let bankDetails = await UserBankDetail.findOne({ where: { userId } });
+        if (bankDetails) {
+          bankDetails = await UserBankDetail.update(
+            reqData,
+            {
+              where: { userId: bankDetails.userId },
+              returning: true
+            }
+          );
+        } else {
+          bankDetails = await UserBankDetail.create(reqData);
+        }
+
+        return res.status(200).json({ "success": true, message: "Bank details updated successfully", "data": bankDetails });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: 'Error in saving data', error });
     }
   }
 }
