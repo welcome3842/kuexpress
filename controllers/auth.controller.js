@@ -246,7 +246,7 @@ class AuthController {
   }
   static async updateProfile(req, res) {
     try {
-      var userId =  req.params.id;
+      var userId =  req.user.id;
       console.log(userId);
       var reqData = req.body;
       if(reqData['password']) {

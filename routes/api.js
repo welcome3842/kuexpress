@@ -18,7 +18,7 @@ router.post('/auth/vendor/signup',  AuthController.vendorRregister);
 router.post('/auth/forgotPassword',  AuthController.forgotPassword);
 router.post('/auth/otpVerify',  AuthController.otpVerify);
 router.post('/auth/passwordUpdate',  AuthController.passwordUpdate);
-router.post('/auth/updateProfile/:id',  AuthController.updateProfile);
+router.put('/auth/updateProfile', authorize, AuthController.updateProfile);
 router.post('/useraddress/create',  UserController.createAddress);
 router.get('/useraddress/list', authorize,  UserController.getUserAddressList);
 router.put('/useraddress/update/:id',  UserController.updateUserAddress);
