@@ -4,6 +4,7 @@ const { validationResult } = require('express-validator');
 const Joi = require('joi');
 const db = require('../models');
 const UserCompany = db.UserCompany;
+const Label = db.Label;
 const { password } = require('../config/db.config');
 
 class CompanyController {
@@ -17,6 +18,12 @@ class CompanyController {
     website: Joi.string().optional(),
     companyLogo: Joi.string().optional(),
   });
+  static labelsSchema = Joi.object({
+    userId: Joi.optional(),
+    chooseLabelFormat: Joi.optional(),
+    detailsShowOnLabel: Joi.optional(),
+  });
+
   static async createAndUpdateCompany(req, res) {
     try {
       if (req.method == "POST") {
@@ -34,20 +41,54 @@ class CompanyController {
         const { error } = CompanyController.companySchema.validate(reqData);
         if (error) return res.status(400).json({ message: error.details[0].message });
         let compDetails = await UserCompany.findOne({ where: { userId } });
-        console.log(compDetails.userId);
         if (compDetails) {
-          compDetails = await UserCompany.update(
+          UserCompany.update(
             reqData,
             {
               where: { userId: compDetails.userId },
               returning: true
             }
           );
+          compDetails = await UserCompany.findOne({ where: { userId } });
         }else {
           compDetails = await UserCompany.create(reqData);
         }
 
         return res.status(200).json({ "success": true, message: "Company details updated successfully", "data": compDetails });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: 'Error in saving data', error });
+    }
+  }
+  static async createAndUpdateLabels(req, res) {
+    try {
+      if (req.method == "POST") {
+        var reqData = req.body;
+        var userId =  req.user.id;
+        console.log(userId);
+
+        reqData['userId'] = userId;
+        reqData['chooseLabelFormat'] = reqData.chooseLabelFormat;
+        reqData['detailsShowOnLabel'] = JSON.stringify(reqData.detailsShowOnLabel);
+
+        const { error } = CompanyController.labelsSchema.validate(reqData);
+        if (error) return res.status(400).json({ message: error.details[0].message });
+        let labelsDetails = await Label.findOne({ where: { userId } });
+        if (labelsDetails) {
+          labelsDetails = await Label.update(
+            reqData,
+            {
+              where: { userId: labelsDetails.userId },
+              returning: true
+            }
+          );
+          labelsDetails = await Label.findOne({ where: { userId } });
+        }else {
+          labelsDetails = await Label.create(reqData);
+        }
+
+        return res.status(200).json({ "success": true, message: "Labels details updated successfully", "data": labelsDetails });
       }
     } catch (error) {
       console.log(error);

@@ -49,6 +49,7 @@ router.post('/ship/calculator',  ShipmentController.shipmentCalculator);
 router.post('/order/return',  OrderController.returnOrder);
 router.get('/order/return/list',  OrderController.getReturnOrderList);
 router.post('/company/create',  CompanyController.createAndUpdateCompany);
+router.post('/labels/configuration', authorize,  CompanyController.createAndUpdateLabels);
 
 
 router.get('/products/list',  ProductController.getProductList);
