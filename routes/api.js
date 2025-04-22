@@ -17,8 +17,9 @@ router.post('/auth/signup',  AuthController.register);
 router.post('/auth/vendor/signup',  AuthController.vendorRregister);
 router.post('/auth/forgotPassword',  AuthController.forgotPassword);
 router.post('/auth/otpVerify',  AuthController.otpVerify);
-router.post('/auth/passwordUpdate',  AuthController.passwordUpdate);
-router.post('/auth/updateProfile/:id',  AuthController.updateProfile);
+router.post('/auth/passwordUpdate', AuthController.passwordUpdate);
+router.post('/auth/changePassword', authorize, AuthController.changePassword);
+router.put('/auth/updateProfile', authorize, AuthController.updateProfile);
 router.post('/useraddress/create',  UserController.createAddress);
 router.get('/useraddress/list', authorize,  UserController.getUserAddressList);
 router.put('/useraddress/update/:id',  UserController.updateUserAddress);
@@ -49,6 +50,7 @@ router.post('/ship/calculator',  ShipmentController.shipmentCalculator);
 router.post('/order/return',  OrderController.returnOrder);
 router.get('/order/return/list',  OrderController.getReturnOrderList);
 router.post('/company/create',  CompanyController.createAndUpdateCompany);
+router.post('/labels/configuration', authorize,  CompanyController.createAndUpdateLabels);
 
 
 router.get('/products/list',  ProductController.getProductList);

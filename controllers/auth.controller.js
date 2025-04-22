@@ -244,9 +244,43 @@ class AuthController {
       return res.status(400).json({ success: false, message: 'Invalid OTP' });
     }
   }
+  static async changePassword(req, res) {
+    var userId =  req.user.id;
+    const { oldPassword, password, confirmPassword } = req.body;
+    const decodedOldPassword = Buffer.from(oldPassword, 'base64').toString('utf8');
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+          success: false,
+          message: 'Password and confirm password do not match.'
+      });
+    }
+    // const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+    // if (!passwordRegex.test(password)) {
+    //     return res.status(400).json({
+    //         success: false,
+    //         message: 'Password must be at least 6 characters long and contain at least one number.'
+    //     });
+    // }
+    const userRecord = await User.findOne({ where: { id: userId } });
+    if (!userRecord) {
+      return res.status(200).json({ "success": true, message: "User not found!" });
+    }
+
+    const isMatch = await bcrypt.compare(decodedOldPassword, userRecord.password);
+
+    if (!isMatch) {
+    return res.status(200).json({ "success": true, message: "Old password is incorrect" });
+    }
+    if(userRecord) {
+      const bcryptPass = await bcrypt.hash(password, 10);
+      await userRecord.update({ password: bcryptPass });
+      return res.status(200).json({ "success": true, message: "Password changed successfully" });
+    }
+
+  }
   static async updateProfile(req, res) {
     try {
-      var userId =  req.params.id;
+      var userId =  req.user.id;
       console.log(userId);
       var reqData = req.body;
       if(reqData['password']) {
