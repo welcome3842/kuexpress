@@ -32,6 +32,7 @@ router.get('/vendors',  UserController.vendorList);
 router.get('/users',  UserController.userList);
 router.delete('/user/delete/:id',  UserController.deleteUser);
 router.post('/user/bankDetails',  UserController.createAndUpdateBankDetails);
+router.get('/user/bank/list', authorize, UserController.getUserBankList);
 
 router.get('/order/list', authorize, OrderController.getOrderList);
 router.get('/location/:pincode',  OrderController.getLocationBypinCode);
@@ -50,7 +51,11 @@ router.post('/ship/calculator',  ShipmentController.shipmentCalculator);
 router.post('/order/return',  OrderController.returnOrder);
 router.get('/order/return/list',  OrderController.getReturnOrderList);
 router.post('/company/create',  CompanyController.createAndUpdateCompany);
+router.get('/company/list', authorize,  CompanyController.getCompanyList);
 router.post('/labels/configuration', authorize,  CompanyController.createAndUpdateLabels);
+router.get('/labels/list', authorize,  CompanyController.getLabelsList);
+router.post('/settings', authorize,  CompanyController.createAndUpdateSettings);
+router.get('/settings/list', authorize, CompanyController.getSettingsList);
 
 
 router.get('/products/list',  ProductController.getProductList);

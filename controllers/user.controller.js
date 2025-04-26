@@ -335,6 +335,22 @@ class UserController {
       return res.status(500).json({ message: 'Error in saving data', error });
     }
   }
+  static async getUserBankList(req, res) {
+    try {
+      var userId =  req.user.id;
+      const userbankList = await db.UserBankDetail.findAll({
+        where: {
+          userId: userId
+        }
+      });
+      if (userbankList) {
+        return res.status(200).json({ "success": true, "data": userbankList });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching bank details data');
+    }
+  }
 }
 
 module.exports = UserController;
