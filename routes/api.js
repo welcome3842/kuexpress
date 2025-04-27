@@ -33,6 +33,10 @@ router.get('/users',  UserController.userList);
 router.delete('/user/delete/:id',  UserController.deleteUser);
 router.post('/user/bankDetails',  UserController.createAndUpdateBankDetails);
 router.get('/user/bank/list', authorize, UserController.getUserBankList);
+router.post('/settings/billingAddress', authorize,  UserController.createAndUpdateBillingAddress);
+router.get('/settings/billingAddress/list', authorize, UserController.getSettingBillingList);
+router.post('/settings/invoice', authorize,  UserController.createAndUpdateSettingsInvoice);
+router.get('/settings/invoice/list', authorize, UserController.getSettingInvoiceList);
 
 router.get('/order/list', authorize, OrderController.getOrderList);
 router.get('/location/:pincode',  OrderController.getLocationBypinCode);
