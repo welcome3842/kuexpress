@@ -5,6 +5,7 @@ const Joi = require('joi');
 const db = require('../models');
 const UserCompany = db.UserCompany;
 const Label = db.Label;
+const Setting = db.Setting;
 const { password } = require('../config/db.config');
 
 class CompanyController {
@@ -22,6 +23,10 @@ class CompanyController {
     userId: Joi.optional(),
     chooseLabelFormat: Joi.optional(),
     detailsShowOnLabel: Joi.optional(),
+  });
+  static settingsSchema = Joi.object({
+    userId: Joi.optional(),
+    twoFactorAuthentication: Joi.optional(),
   });
 
   static async createAndUpdateCompany(req, res) {
@@ -61,6 +66,22 @@ class CompanyController {
       return res.status(500).json({ message: 'Error in saving data', error });
     }
   }
+  static async getCompanyList(req, res) {
+    try {
+      var userId =  req.user.id;
+      const complist = await db.UserCompany.findAll({
+        where: {
+          userId: userId
+        }
+      });
+      if (complist) {
+        return res.status(200).json({ "success": true, "data": complist });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching company data');
+    }
+  }
   static async createAndUpdateLabels(req, res) {
     try {
       if (req.method == "POST") {
@@ -93,6 +114,71 @@ class CompanyController {
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: 'Error in saving data', error });
+    }
+  }
+  static async getLabelsList(req, res) {
+    try {
+      var userId =  req.user.id;
+      const labelList = await db.Label.findAll({
+        where: {
+          userId: userId
+        }
+      });
+      if (labelList) {
+        return res.status(200).json({ "success": true, "data": labelList });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching label data');
+    }
+  }
+  static async createAndUpdateSettings(req, res) {
+    try {
+      if (req.method == "POST") {
+        var reqData = req.body;
+        var userId =  req.user.id;
+        console.log(userId);
+
+        reqData['userId'] = userId;
+        reqData['twoFactorAuthentication'] = reqData.twoFactorAuthentication;
+
+        const { error } = CompanyController.settingsSchema.validate(reqData);
+        if (error) return res.status(400).json({ message: error.details[0].message });
+        let labelsDetails = await Setting.findOne({ where: { userId } });
+        if (labelsDetails) {
+          labelsDetails = await Setting.update(
+            reqData,
+            {
+              where: { userId: labelsDetails.userId },
+              returning: true
+            }
+          );
+          labelsDetails = await Setting.findOne({ where: { userId } });
+        }else {
+          labelsDetails = await Setting.create(reqData);
+        }
+
+        return res.status(200).json({ "success": true, message: "Settings details updated successfully", "data": labelsDetails });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: 'Error in saving data', error });
+    }
+  }
+  static async getSettingsList(req, res) {
+    try {
+      var userId =  req.user.id;
+      const settingsListing = await db.Setting.findAll({
+        where: {
+          userId: userId
+        }
+      });
+      if (settingsListing) {
+        return res.status(200).json({ "success": true, "data": settingsListing });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching setting data');
     }
   }
 }
