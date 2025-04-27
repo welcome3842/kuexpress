@@ -8,6 +8,8 @@ const { Op } = require('sequelize');
 const UserAddress = db.UserAddress;
 const UserKyc = db.UserKyc;
 const UserBankDetail = db.UserBankDetail;
+const CompanyBillingAddress = db.CompanyBillingAddress;
+const InvoicePreference = db.InvoicePreference;
 
 class UserController {
 
@@ -50,6 +52,27 @@ class UserController {
     ifsc: Joi.string().required(),
     branch: Joi.allow(null, '').optional(),
     passbookPhoto: Joi.allow(null, '').optional(),
+  });
+
+  static settingsBillingSchema = Joi.object({
+    userId: Joi.required(),
+    contactNumber: Joi.string().required(),
+    completeAaddress: Joi.string().required(),
+    addressLandmark: Joi.allow(null, '').optional(),
+    pinCode: Joi.string().required(),
+    city: Joi.allow(null, '').optional(),
+    state: Joi.allow(null, '').optional(),
+  });
+
+  static settingsInvoiceSchema = Joi.object({
+    userId: Joi.required(),
+    invoicePrefix: Joi.allow(null, '').optional(),
+    invoiceFrom: Joi.allow(null, '').optional(),
+    invoicePreview: Joi.allow(null, '').optional(),
+    invoiceCinNumber: Joi.allow(null, '').optional(),
+    invoiceType: Joi.allow(null, '').optional(),
+    invoiceHideByerContact: Joi.allow(null, '').optional(),
+    invoiceSignature: Joi.allow(null, '').optional(),
   });
 
   static async vendorList(req, res) {
@@ -349,6 +372,113 @@ class UserController {
     } catch (error) {
       console.error(error);
       res.status(500).send('Error in fetching bank details data');
+    }
+  }
+  static async createAndUpdateBillingAddress(req, res) {
+    try {
+      if (req.method == "POST") {
+        var reqData = req.body;
+        var userId =  req.user.id;
+
+        reqData['userId'] = userId;
+        reqData['contactNumber'] = reqData.contactNumber;
+        reqData['completeAaddress'] = reqData.completeAaddress;
+        reqData['addressLandmark'] = reqData.addressLandmark;
+        reqData['pinCode'] = reqData.pinCode;
+        reqData['city'] = reqData.city;
+        reqData['state'] = reqData.state;
+
+        const { error } = UserController.settingsBillingSchema.validate(reqData);
+        if (error) return res.status(400).json({ message: error.details[0].message });
+        let billingAddr = await CompanyBillingAddress.findOne({ where: { userId } });
+        if (billingAddr) {
+          billingAddr = await CompanyBillingAddress.update(
+            reqData,
+            {
+              where: { userId: billingAddr.userId },
+              returning: true
+            }
+          );
+          billingAddr = await CompanyBillingAddress.findOne({ where: { userId } });
+        } else {
+          billingAddr = await CompanyBillingAddress.create(reqData);
+        }
+
+        return res.status(200).json({ "success": true, message: "Billing address updated successfully", "data": billingAddr });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: 'Error in saving data', error });
+    }
+  }
+  static async getSettingBillingList(req, res) {
+    try {
+      var userId =  req.user.id;
+      const cbillingAddr = await db.CompanyBillingAddress.findAll({
+        where: {
+          userId: userId
+        }
+      });
+      if (cbillingAddr) {
+        return res.status(200).json({ "success": true, "data": cbillingAddr });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching billing details data');
+    }
+  }
+  static async createAndUpdateSettingsInvoice(req, res) {
+    try {
+      if (req.method == "POST") {
+        var reqData = req.body;
+        var userId =  req.user.id;
+
+        reqData['userId'] = userId;
+        reqData['invoicePrefix'] = reqData.invoicePrefix;
+        reqData['invoiceFrom'] = reqData.invoiceFrom;
+        reqData['invoicePreview'] = reqData.invoicePreview;
+        reqData['invoiceCinNumber'] = reqData.invoiceCinNumber;
+        reqData['invoiceType'] = reqData.invoiceType;
+        reqData['invoiceHideByerContact'] = reqData.invoiceHideByerContact;
+        reqData['invoiceSignature'] = reqData.invoiceSignature;
+
+        const { error } = UserController.settingsInvoiceSchema.validate(reqData);
+        if (error) return res.status(400).json({ message: error.details[0].message });
+        let invoicedata = await InvoicePreference.findOne({ where: { userId } });
+        if (invoicedata) {
+          invoicedata = await InvoicePreference.update(
+            reqData,
+            {
+              where: { userId: invoicedata.userId },
+              returning: true
+            }
+          );
+          invoicedata = await InvoicePreference.findOne({ where: { userId } });
+        } else {
+          invoicedata = await InvoicePreference.create(reqData);
+        }
+
+        return res.status(200).json({ "success": true, message: "Invoice details updated successfully", "data": invoicedata });
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: 'Error in saving data', error });
+    }
+  }
+  static async getSettingInvoiceList(req, res) {
+    try {
+      var userId =  req.user.id;
+      const invoiceList = await db.InvoicePreference.findAll({
+        where: {
+          userId: userId
+        }
+      });
+      if (invoiceList) {
+        return res.status(200).json({ "success": true, "data": invoiceList });
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error in fetching setting invoice details data');
     }
   }
 }
