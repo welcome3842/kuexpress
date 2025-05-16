@@ -80,9 +80,8 @@ class ShipmentController {
 
   static async courierList(req, res) {
     try {
-      if (req.method == "POST") {
+      
         const loginResponse = await authService.login();
-
         if (loginResponse && loginResponse.status) {
           const authToken = loginResponse.data;
           const courierresponse = await shipmentService.courierList({
@@ -104,7 +103,7 @@ class ShipmentController {
             .status(200)
             .json({ success: false, message: "Courier list not found" });
         }
-      }
+      
     } catch (error) {
       console.log(error);
       return res.status(500).json({ message: "Error in courier list", error });
@@ -118,11 +117,11 @@ class ShipmentController {
         const orderNumebr = reqData.orderNumebr;
 
         const result = await commonService.getOrderListByOrderNumber({ orderNumebr });
-
-        const addressData = result.buyerDetails[0];
-        const pickupData = result.pickupDetails[0];
-        const packageData = result.packageDetails[0];
-        const invoiceData = result.invoice[0];
+       
+        const addressData = result.buyerDetails;
+        const pickupData = result.pickupDetails;
+        const packageData = result.packageDetails;
+        const invoiceData = result.invoice;
 
         const invoice_date = new Date(invoiceData.invoice_date);
         const invoiceDate = invoice_date.toISOString().split('T')[0];

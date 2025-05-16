@@ -18,7 +18,7 @@ exports.getOrderListByOrderNumber = async ({ orderNumebr }) => {
           as: 'buyerDetails'
         },
         {
-          model: db.UserAddress,
+          model: db.PickupAddress,
           as: 'pickupDetails'
         },
         {
