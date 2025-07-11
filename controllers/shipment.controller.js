@@ -187,8 +187,9 @@ class ShipmentController {
 
       return {
         id: item.id,
-        courierName: item.courierName,
-        courierType: item.courierType,
+        courier_id: item.id,
+        courier: item.courierName,
+        name: item.courierType,
         customerType: item.customerType,
         total_price: finalPrice.toFixed(2),
         expectedPickup:"",
