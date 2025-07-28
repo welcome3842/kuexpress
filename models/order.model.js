@@ -124,6 +124,42 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.DATE,
         allowNull: true,
       },
+      dtdc_reference_number: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dtdc_courier_partner: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dtdc_courier_account: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dtdc_courier_partner_reference_number: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dtdc_chargeable_weight: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dtdc_self_pickup_enabled: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dtdc_customer_reference_number: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dtdc_pieces: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      dtdc_barCodeData: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
     },
     { sequelize, modelName: 'Order', tableName: 'orders', timestamps: true }
   );
