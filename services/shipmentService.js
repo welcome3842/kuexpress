@@ -1,5 +1,5 @@
 const axios = require("axios");
-const { apiBaseUrl } = require("../config/api.config");
+const { apiBaseUrl, apiDTDCBaseUrl, DTDCAPIKEY } = require("../config/api.config");
 
 exports.calculatePricing = async ({
   order_type_user,
@@ -134,6 +134,27 @@ exports.calculateShipment = async ({ reqData, authToken, }) => {
         },
       }
     );
+    return response.data;
+  } catch (error) {
+    return error.response?.data;
+  }
+};
+
+exports.createDTDCShipment = async ({ payload }) => {
+
+  try {
+    const authToken = DTDCAPIKEY;
+    const response = await axios.post(
+      `${apiDTDCBaseUrl}/customer/integration/consignment/softdata`,
+      payload,
+      {
+        headers: {
+          "api-key": `${authToken}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
     return response.data;
   } catch (error) {
     return error.response?.data;
