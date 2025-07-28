@@ -4,6 +4,7 @@ const { validationResult } = require('express-validator');
 const Joi = require('joi');
 const db = require('../models');
 const Wallet = db.Wallet;
+const Transaction = db.Transaction ;
 const razorpay = require('../config/razorpay.config');
 
 
@@ -33,19 +34,16 @@ class WalletController {
   }
 
   static async verifyPayment(req, res) {
-    
     const { razorpay_payment_id, userId, amount } = req.body;
 
     try {
-
         const payment = await razorpay.payments.fetch(razorpay_payment_id);
 
-		if (!payment || payment.status !== "captured") {
-		  return res.status(200).json({ success: false, message: "Payment verification failed" });
-		}
+        if (!payment || payment.status !== "captured") {
+            // return res.status(200).json({ success: false, message: "Payment verification failed" });
+        }
 
-        
-        const wallet = await Wallet.findOne({ where: { userId } });
+        let wallet = await Wallet.findOne({ where: { userId } });
         if (!wallet) {
             wallet = await Wallet.create({ userId, balance: 0 });
         }
@@ -53,15 +51,19 @@ class WalletController {
         wallet.balance += parseFloat(amount);
         await wallet.save();
 
-       
-        await Transaction.create({ userId: userId, walletId: wallet.id, type: "credit", amount });
+        await Transaction.create({
+            userId: userId,
+            walletId: wallet.id,
+            type: "credit",
+            amount,
+        });
 
         res.status(200).json({ message: "Payment successful, funds added!", wallet });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+}
 
-  }
   
   static async getWalletBalance(req, res) {
     const { userId } = req.params; 
