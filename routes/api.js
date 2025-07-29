@@ -47,6 +47,7 @@ router.post('/order/cancel',  OrderController.cancelOrder);
 router.post('/ship/price-list', authorize, ShipmentController.priceList);
 router.post('/ship/dtdc-price-list', authorize, ShipmentController.dtdcPriceList);
 router.get('/ship/courier-list', authorize, ShipmentController.courierList);
+router.get('/ship/dtdc-label', ShipmentController.createDTDCLabel);
 router.post('/ship/create-shipment',  ShipmentController.createShipment);
 router.get("/wallet/balance/:userId", WalletController.getWalletBalance);
 router.post("/payment/verify", WalletController.verifyPayment);

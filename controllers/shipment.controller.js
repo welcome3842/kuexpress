@@ -561,6 +561,68 @@ class ShipmentController {
     }
   }
 
+  static async createDTDCLabel(req, res) {
+    try {
+
+      if (payload) {
+        const shipresponse = await shipmentService.createDTDCLabel({
+          payload
+        });
+
+        if (shipresponse && shipresponse.data[0].success == true) {
+          //data updating in order table
+          const order = await Order.findOne({ where: { orderNumebr: result.orderNumebr } });
+          console.log('order data: ' + order);
+          if (order) {
+            console.log('order data: ' + order);
+            const currentDate = new Date();
+            await order.update({
+              status: 2,
+              message: shipresponse.data[0].message,
+              dtdc_reference_number: shipresponse.data[0].reference_number,
+              dtdc_courier_partner: shipresponse.data[0].courier_partner,
+              dtdc_courier_account: shipresponse.data[0].courier_account,
+              dtdc_courier_partner_reference_number: shipresponse.data[0].courier_partner_reference_number,
+              dtdc_chargeable_weight: shipresponse.data[0].chargeable_weight,
+              dtdc_self_pickup_enabled: shipresponse.data[0].self_pickup_enabled,
+              dtdc_customer_reference_number: shipresponse.data[0].customer_reference_number,
+              dtdc_pieces: JSON.stringify(shipresponse.data[0].pieces),
+              dtdc_barCodeData: shipresponse.data[0].barCodeData,
+              shipResponse: JSON.stringify(shipresponse.data[0]),
+              shipCreatedDate: currentDate,
+              shipCancelDate: currentDate
+            });
+          }
+          return shipresponse.data;
+
+        } else {
+          return shipresponse.data;
+        }
+      } else {
+        return shipresponse.data;
+      }
+
+    } catch (error) {
+      console.log(error);
+      return "Error in creating shipment";
+    }
+  }
+
+  static async createDTDCLabel(req, res) {
+    try {
+      if (req.method == "GET") {
+        const refNumber = req.query.reference_number;
+          const labelresponse = await shipmentService.createDTDCLabel({
+            refNumber
+          });
+          return labelresponse;
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({ message: "Something went wrong", error });
+    }
+  }
+
 }
 
 module.exports = ShipmentController;
