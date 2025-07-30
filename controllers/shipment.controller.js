@@ -546,7 +546,7 @@ class ShipmentController {
               shipCancelDate: currentDate
             });
           }
-          return shipresponse.data;
+          return shipresponse.data[0];
 
         } else {
           return shipresponse.data;
