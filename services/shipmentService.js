@@ -176,7 +176,7 @@ exports.createDTDCLabel = async ({ refNumber }) => {
       }
     );
 
-    return response;
+    return response.data;
   } catch (error) {
     return error.response?.data;
   }
