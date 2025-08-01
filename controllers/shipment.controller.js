@@ -251,6 +251,9 @@ class ShipmentController {
           }
           const shipresponse = await ShipmentController.createDTDCShipment(result, reqData, addressData, pickupData, packageData);
           shipresponse.success = true;
+          shipresponse.pickupDetails = result.pickupDetails;
+          shipresponse.packageDetails = result.packageDetails;
+
           return res.status(200).json(shipresponse);
         } else {
           const addressData = result.buyerDetails;
@@ -475,7 +478,7 @@ class ShipmentController {
             "origin_details": {
               "name": pickupData.contactPerson,
               "phone": pickupData.contactNumber,
-              "alternate_phone": "9987456321",
+              "alternate_phone": pickupData.contactNumber,
               "address_line_1": pickupData.address,
               "address_line_2": "",
               "pincode": pickupData.pinCode,
@@ -495,14 +498,14 @@ class ShipmentController {
               "email": ""
             },
             "return_details": {
-              "name": "test WH HO",
-              "phone": "9876543121",
-              "alternate_phone": "9557551556",
-              "address_line_1": "D-13, First Floor, Sector-3, Noida, 201301",
+              "name":  pickupData.contactPerson,
+              "phone": pickupData.contactNumber,
+              "alternate_phone": pickupData.contactNumber,
+              "address_line_1": pickupData.address,
               "address_line_2": "",
-              "pincode": "201301",
-              "city": "NOIDA",
-              "state": "UTTAR PRADESH",
+              "pincode":  pickupData.pinCode,
+              "city": pickupData.city,
+              "state": pickupData.state,
               "country": "India",
               "email": ""
             },
