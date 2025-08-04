@@ -6,7 +6,9 @@ const db = require("../models");
 const authService = require("../services/authService");
 const shipmentService = require("../services/shipmentService");
 const commonService = require("../services/commonService");
+const walletService = require("../services/walletService");
 const Order = db.Order;
+const Wallet = db.Wallet;
 
 class ShipmentController {
   static orderSchema = Joi.object({
@@ -217,15 +219,27 @@ class ShipmentController {
     try {
       if (req.method == "POST") {
         const reqData = req.body;
+       
         const orderNumebr = reqData.orderNumebr;
 
         const result = await commonService.getOrderListByOrderNumber({ orderNumebr });
+
         if (!result) {
           let noData = {};
           noData.success = false;
           noData.data = 'No data found related to this order id.';
           return res.status(200).json(noData);
         }
+        const userId = req.user.id;
+        if(result.paymentMode =='prepaid')
+          {
+             const walletCheck = await walletService.deductWalletBalance(userId, reqData.price);
+                if (!walletCheck.success) {
+                  return res.status(200).json(walletCheck);
+                }
+             
+          }
+       
         if (reqData.courier == 'DTDC') {
           const addressData = result.buyerDetails;
           if (!addressData) {
@@ -249,8 +263,15 @@ class ShipmentController {
             noData.data = 'Package details is not available';
             return res.status(200).json(noData);
           }
+
           const shipresponse = await ShipmentController.createDTDCShipment(result, reqData, addressData, pickupData, packageData);
-          shipresponse.success = true;
+          
+          if(!shipresponse.success)
+          {
+            walletService.refundWalletBalance(userId, reqData.price);
+          }  
+
+          shipresponse.awb_number = shipresponse.reference_number;      
           shipresponse.pickupDetails = result.pickupDetails;
           shipresponse.packageDetails = result.packageDetails;
           shipresponse.buyerDetails =  result.buyerDetails;
@@ -350,22 +371,27 @@ class ShipmentController {
                   label: shipresponse.label,
                   shipResponse: JSON.stringify(shipresponse),
                   shipCreatedDate: currentDate,
-                  shipCancelDate: currentDate
+                  shipCancelDate: currentDate,
+                  courierType:"XpressBees"
                 });
-              }
+              }            
+
               shipresponse.success = true;
               return res.status(200).json(shipresponse);
 
             } else {
+                walletService.refundWalletBalance(userId, reqData.price);
               shipresponse.success = false;
               return res.status(200).json(shipresponse);
             }
           } else {
+             walletService.refundWalletBalance(userId, reqData.price);
             return res
               .status(200)
               .json({ success: false, message: "Shipment creation error" });
           }
-        }
+        }     
+
       }
     } catch (error) {
       console.log(error);
@@ -528,15 +554,14 @@ class ShipmentController {
 
         if (shipresponse && shipresponse.data[0].success == true) {
           //data updating in order table
-          const order = await Order.findOne({ where: { orderNumebr: result.orderNumebr } });
-          console.log('order data: ' + order);
-          if (order) {
-            console.log('order data: ' + order);
+          const order = await Order.findOne({ where: { orderNumebr: result.orderNumebr } });         
+          if (order) {            
             const currentDate = new Date();
             await order.update({
               status: 2,
               message: shipresponse.data[0].message,
               dtdc_reference_number: shipresponse.data[0].reference_number,
+              awb_number: shipresponse.data[0].reference_number,
               dtdc_courier_partner: shipresponse.data[0].courier_partner,
               dtdc_courier_account: shipresponse.data[0].courier_account,
               dtdc_courier_partner_reference_number: shipresponse.data[0].courier_partner_reference_number,
@@ -547,7 +572,8 @@ class ShipmentController {
               dtdc_barCodeData: shipresponse.data[0].barCodeData,
               shipResponse: JSON.stringify(shipresponse.data[0]),
               shipCreatedDate: currentDate,
-              shipCancelDate: currentDate
+              shipCancelDate: currentDate,
+              courierType:"DTDC"
             });
           }
           return shipresponse.data[0];
@@ -566,22 +592,39 @@ class ShipmentController {
   }
 
 
-  static async createDTDCLabel(req, res) {
-    try {
-    
-      if (req.method == "GET") {
-        const refNumber = req.query.reference_number;
-          const labelresponse = await shipmentService.createDTDCLabel({
-            refNumber
-          });
-         
-           return res.status(200).json(labelresponse);
-      }
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ message: "Something went wrong", error });
+ static async createDTDCLabel(req, res) {
+  try {
+    if (req.method === "GET") {
+      const refNumber = req.query.reference_number;
+
+      
+      const labelString = await shipmentService.createDTDCLabel({ refNumber });
+
+      // Convert it to a Buffer using correct encoding
+      const labelBuffer = Buffer.from(labelString, 'binary'); // or 'utf-8' if it came as utf-8 text
+
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment;filename=CN${refNumber}.pdf`,
+        'Cache-Control': 'no-cache',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Strict-Transport-Security': 'max-age=86400',
+        'Access-Control-Allow-Credentials': 'true',
+        'Vary': 'Origin'
+      });
+
+      return res.send(labelBuffer);
+    } else {
+      return res.status(405).json({ message: "Method not allowed" });
     }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong", error });
   }
+}
+
+
 
 }
 

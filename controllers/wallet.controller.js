@@ -56,6 +56,8 @@ class WalletController {
             walletId: wallet.id,
             type: "credit",
             amount,
+            balance_after:  wallet.balance,
+            reason:"Wallet recharge"
         });
 
         res.status(200).json({ message: "Payment successful, funds added!", wallet });
