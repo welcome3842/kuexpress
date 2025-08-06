@@ -227,7 +227,7 @@ class ShipmentController {
         if (!result) {
           let noData = {};
           noData.success = false;
-          noData.data = 'No data found related to this order id.';
+          noData.message = 'No data found related to this order id.';
           return res.status(200).json(noData);
         }
         const userId = req.user.id;
@@ -245,7 +245,7 @@ class ShipmentController {
           if (!addressData) {
             let noData = {};
             noData.success = false;
-            noData.data = 'Destination details is null';
+            noData.message = 'Destination details is null';
             return res.status(200).json(noData);
           }
           const pickupData = result.pickupDetails;
@@ -253,7 +253,7 @@ class ShipmentController {
           if (!pickupData) {
             let noData = {};
             noData.success = false;
-            noData.data = 'Origin details is null';
+            noData.message = 'Origin details is null';
             return res.status(200).json(noData);
           }
           const packageData = result.packageDetails;
@@ -268,7 +268,10 @@ class ShipmentController {
           
           if(!shipresponse.success)
           {
-            walletService.refundWalletBalance(userId, reqData.price);
+            if(result.paymentMode =='prepaid')
+            {
+              walletService.refundWalletBalance(userId, reqData.price);
+            }
           }  
 
           shipresponse.awb_number = shipresponse.reference_number;      
@@ -339,7 +342,7 @@ class ShipmentController {
             "breadth": packageData.width,
             "height": packageData.height,
             "courier_id": reqData.courier_id,
-            "pickup_location": "franchise",
+            "pickup_location": pickupData.address,
             "shipping_charges": "0",
             "cod_charges": "25",
             "discount": "0",
@@ -380,7 +383,10 @@ class ShipmentController {
               return res.status(200).json(shipresponse);
 
             } else {
+              if(result.paymentMode =='prepaid')
+              {
                 walletService.refundWalletBalance(userId, reqData.price);
+              }
               shipresponse.success = false;
               return res.status(200).json(shipresponse);
             }
@@ -482,11 +488,33 @@ class ShipmentController {
   }
   static async createDTDCShipment(result, reqData, addressData, pickupData, packageData) {
     try {
+     
+          const  courier_id = reqData.courier_id;
+          const courierRate = await db.CourierRate.findOne({
+            where: { id: courier_id },
+            raw: true,
+          });
+          const serviceType =   courierRate.serviceType;
+          const productNames = result.productDetails.map(p => p.dataValues.productName).join(', ');
+          const totalAmount = result.totalAmount;
+          const invoice     = result.invoice;
+
+          const paddedNumber = String(result.id).padStart(7, '0');
+          const today = new Date();
+          const currentMonth = today.getMonth() + 1;
+          const currentYear = today.getFullYear();
+          const fyStart = currentMonth < 4 ? currentYear - 1 : currentYear;
+          const fyEnd = fyStart + 1;
+          const financialYear = `${String(fyStart).slice(2)}-${String(fyEnd).slice(2)}`;
+
+          const customerReferenceNumber = `SO-GGN/${financialYear}/${paddedNumber}`;
+
+
       const payload = {
         "consignments": [
           {
             "customer_code": "GL017",
-            "service_type_id": "B2C PRIORITY",
+            "service_type_id": serviceType,
             "load_type": "NON-DOCUMENT",
             "consignment_type": "Forward",
 
@@ -496,10 +524,10 @@ class ShipmentController {
             "height": packageData.height,
             "weight_unit": "kg",
             "weight": packageData.deadWeight,
-            "declared_value": "5982.6",
-            "eway_bill": "",
-            "invoice_number": "",
-            "invoice_date": "",
+            "declared_value": totalAmount,
+            "eway_bill": invoice.ebill_number,
+            "invoice_number":invoice.invoice_number,
+            "invoice_date": invoice.invoice_date,
             "num_pieces": "1",
 
             "origin_details": {
@@ -536,12 +564,12 @@ class ShipmentController {
               "country": "India",
               "email": ""
             },
-            "customer_reference_number": "SO-GGN/22-23/0000121",
+            "customer_reference_number": customerReferenceNumber,
             "cod_collection_mode": "",
             "cod_amount": "",
-            "commodity_id": "7",
-            "unlisted_commodity_name": "beauty product test",
-            "description": "test order containing test product",
+            "commodity_id": "1",
+            "unlisted_commodity_name": productNames,
+            "description": "",
             "reference_number": "",
           }
         ]
@@ -579,10 +607,10 @@ class ShipmentController {
           return shipresponse.data[0];
 
         } else {
-          return shipresponse.data;
+          return shipresponse.data[0];
         }
       } else {
-        return shipresponse.data;
+        return shipresponse.data[0];
       }
 
     } catch (error) {
