@@ -260,7 +260,7 @@ class ShipmentController {
           if (!packageData) {
             let noData = {};
             noData.success = false;
-            noData.data = 'Package details is not available';
+            noData.message = 'Package details is not available';
             return res.status(200).json(noData);
           }
 
@@ -569,7 +569,7 @@ class ShipmentController {
             "cod_amount": "",
             "commodity_id": "1",
             "unlisted_commodity_name": productNames,
-            "description": "",
+            "description": productNames,
             "reference_number": "",
           }
         ]
