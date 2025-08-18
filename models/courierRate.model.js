@@ -16,6 +16,10 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.STRING(50),
         allowNull: false,
       },
+      serviceType: {
+        type: Sequelize.STRING(50),
+        allowNull: true,
+      },
       customerType: {
         type: Sequelize.STRING(50),
         allowNull: false,

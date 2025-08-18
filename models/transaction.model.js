@@ -14,6 +14,8 @@ module.exports = (sequelize, Sequelize) => {
       walletId: { type: Sequelize.INTEGER, allowNull: false },
       type: { type: Sequelize.ENUM('credit', 'debit'), allowNull: false },
       amount: { type: Sequelize.FLOAT, allowNull: false },
+      balance_after : { type: Sequelize.FLOAT, allowNull: true },
+      reason: { type: Sequelize.STRING,  allowNull: true },
     },
     {
       sequelize,

@@ -160,6 +160,10 @@ module.exports = (sequelize, Sequelize) => {
         type: Sequelize.STRING,
         allowNull: true,
       },
+      courierType: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
     },
     { sequelize, modelName: 'Order', tableName: 'orders', timestamps: true }
   );

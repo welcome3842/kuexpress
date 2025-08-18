@@ -6,7 +6,9 @@ const db = require("../models");
 const authService = require("../services/authService");
 const shipmentService = require("../services/shipmentService");
 const commonService = require("../services/commonService");
+const walletService = require("../services/walletService");
 const Order = db.Order;
+const Wallet = db.Wallet;
 
 class ShipmentController {
   static orderSchema = Joi.object({
@@ -217,21 +219,33 @@ class ShipmentController {
     try {
       if (req.method == "POST") {
         const reqData = req.body;
+       
         const orderNumebr = reqData.orderNumebr;
 
         const result = await commonService.getOrderListByOrderNumber({ orderNumebr });
+
         if (!result) {
           let noData = {};
           noData.success = false;
-          noData.data = 'No data found related to this order id.';
+          noData.message = 'No data found related to this order id.';
           return res.status(200).json(noData);
         }
+        const userId = req.user.id;
+        if(result.paymentMode =='prepaid')
+          {
+             const walletCheck = await walletService.deductWalletBalance(userId, reqData.price);
+                if (!walletCheck.success) {
+                  return res.status(200).json(walletCheck);
+                }
+             
+          }
+       
         if (reqData.courier == 'DTDC') {
           const addressData = result.buyerDetails;
           if (!addressData) {
             let noData = {};
             noData.success = false;
-            noData.data = 'Destination details is null';
+            noData.message = 'Destination details is null';
             return res.status(200).json(noData);
           }
           const pickupData = result.pickupDetails;
@@ -239,20 +253,31 @@ class ShipmentController {
           if (!pickupData) {
             let noData = {};
             noData.success = false;
-            noData.data = 'Origin details is null';
+            noData.message = 'Origin details is null';
             return res.status(200).json(noData);
           }
           const packageData = result.packageDetails;
           if (!packageData) {
             let noData = {};
             noData.success = false;
-            noData.data = 'Package details is not available';
+            noData.message = 'Package details is not available';
             return res.status(200).json(noData);
           }
+
           const shipresponse = await ShipmentController.createDTDCShipment(result, reqData, addressData, pickupData, packageData);
-          shipresponse.success = true;
+          
+          if(!shipresponse.success)
+          {
+            if(result.paymentMode =='prepaid')
+            {
+              walletService.refundWalletBalance(userId, reqData.price);
+            }
+          }  
+
+          shipresponse.awb_number = shipresponse.reference_number;      
           shipresponse.pickupDetails = result.pickupDetails;
           shipresponse.packageDetails = result.packageDetails;
+          shipresponse.buyerDetails =  result.buyerDetails;
 
           return res.status(200).json(shipresponse);
         } else {
@@ -317,7 +342,7 @@ class ShipmentController {
             "breadth": packageData.width,
             "height": packageData.height,
             "courier_id": reqData.courier_id,
-            "pickup_location": "franchise",
+            "pickup_location": pickupData.address,
             "shipping_charges": "0",
             "cod_charges": "25",
             "discount": "0",
@@ -349,22 +374,30 @@ class ShipmentController {
                   label: shipresponse.label,
                   shipResponse: JSON.stringify(shipresponse),
                   shipCreatedDate: currentDate,
-                  shipCancelDate: currentDate
+                  shipCancelDate: currentDate,
+                  courierType:"XpressBees"
                 });
-              }
+              }            
+
               shipresponse.success = true;
               return res.status(200).json(shipresponse);
 
             } else {
+              if(result.paymentMode =='prepaid')
+              {
+                walletService.refundWalletBalance(userId, reqData.price);
+              }
               shipresponse.success = false;
               return res.status(200).json(shipresponse);
             }
           } else {
+             walletService.refundWalletBalance(userId, reqData.price);
             return res
               .status(200)
               .json({ success: false, message: "Shipment creation error" });
           }
-        }
+        }     
+
       }
     } catch (error) {
       console.log(error);
@@ -455,11 +488,33 @@ class ShipmentController {
   }
   static async createDTDCShipment(result, reqData, addressData, pickupData, packageData) {
     try {
+     
+          const  courier_id = reqData.courier_id;
+          const courierRate = await db.CourierRate.findOne({
+            where: { id: courier_id },
+            raw: true,
+          });
+          const serviceType =   courierRate.serviceType;
+          const productNames = result.productDetails.map(p => p.dataValues.productName).join(', ');
+          const totalAmount = result.totalAmount;
+          const invoice     = result.invoice;
+
+          const paddedNumber = String(result.id).padStart(7, '0');
+          const today = new Date();
+          const currentMonth = today.getMonth() + 1;
+          const currentYear = today.getFullYear();
+          const fyStart = currentMonth < 4 ? currentYear - 1 : currentYear;
+          const fyEnd = fyStart + 1;
+          const financialYear = `${String(fyStart).slice(2)}-${String(fyEnd).slice(2)}`;
+
+          const customerReferenceNumber = `SO-GGN/${financialYear}/${paddedNumber}`;
+
+
       const payload = {
         "consignments": [
           {
             "customer_code": "GL017",
-            "service_type_id": "B2C PRIORITY",
+            "service_type_id": serviceType,
             "load_type": "NON-DOCUMENT",
             "consignment_type": "Forward",
 
@@ -469,10 +524,10 @@ class ShipmentController {
             "height": packageData.height,
             "weight_unit": "kg",
             "weight": packageData.deadWeight,
-            "declared_value": "5982.6",
-            "eway_bill": "",
-            "invoice_number": "",
-            "invoice_date": "",
+            "declared_value": totalAmount,
+            "eway_bill": invoice.ebill_number,
+            "invoice_number":invoice.invoice_number,
+            "invoice_date": invoice.invoice_date,
             "num_pieces": "1",
 
             "origin_details": {
@@ -509,12 +564,12 @@ class ShipmentController {
               "country": "India",
               "email": ""
             },
-            "customer_reference_number": "SO-GGN/22-23/0000121",
+            "customer_reference_number": customerReferenceNumber,
             "cod_collection_mode": "",
             "cod_amount": "",
-            "commodity_id": "7",
-            "unlisted_commodity_name": "beauty product test",
-            "description": "test order containing test product",
+            "commodity_id": "1",
+            "unlisted_commodity_name": productNames,
+            "description": productNames,
             "reference_number": "",
           }
         ]
@@ -527,15 +582,14 @@ class ShipmentController {
 
         if (shipresponse && shipresponse.data[0].success == true) {
           //data updating in order table
-          const order = await Order.findOne({ where: { orderNumebr: result.orderNumebr } });
-          console.log('order data: ' + order);
-          if (order) {
-            console.log('order data: ' + order);
+          const order = await Order.findOne({ where: { orderNumebr: result.orderNumebr } });         
+          if (order) {            
             const currentDate = new Date();
             await order.update({
               status: 2,
               message: shipresponse.data[0].message,
               dtdc_reference_number: shipresponse.data[0].reference_number,
+              awb_number: shipresponse.data[0].reference_number,
               dtdc_courier_partner: shipresponse.data[0].courier_partner,
               dtdc_courier_account: shipresponse.data[0].courier_account,
               dtdc_courier_partner_reference_number: shipresponse.data[0].courier_partner_reference_number,
@@ -546,16 +600,17 @@ class ShipmentController {
               dtdc_barCodeData: shipresponse.data[0].barCodeData,
               shipResponse: JSON.stringify(shipresponse.data[0]),
               shipCreatedDate: currentDate,
-              shipCancelDate: currentDate
+              shipCancelDate: currentDate,
+              courierType:"DTDC"
             });
           }
           return shipresponse.data[0];
 
         } else {
-          return shipresponse.data;
+          return shipresponse.data[0];
         }
       } else {
-        return shipresponse.data;
+        return shipresponse.data[0];
       }
 
     } catch (error) {
@@ -564,67 +619,40 @@ class ShipmentController {
     }
   }
 
-  static async createDTDCLabel(req, res) {
-    try {
 
-      if (payload) {
-        const shipresponse = await shipmentService.createDTDCLabel({
-          payload
-        });
+ static async createDTDCLabel(req, res) {
+  try {
+    if (req.method === "GET") {
+      const refNumber = req.query.reference_number;
 
-        if (shipresponse && shipresponse.data[0].success == true) {
-          //data updating in order table
-          const order = await Order.findOne({ where: { orderNumebr: result.orderNumebr } });
-          console.log('order data: ' + order);
-          if (order) {
-            console.log('order data: ' + order);
-            const currentDate = new Date();
-            await order.update({
-              status: 2,
-              message: shipresponse.data[0].message,
-              dtdc_reference_number: shipresponse.data[0].reference_number,
-              dtdc_courier_partner: shipresponse.data[0].courier_partner,
-              dtdc_courier_account: shipresponse.data[0].courier_account,
-              dtdc_courier_partner_reference_number: shipresponse.data[0].courier_partner_reference_number,
-              dtdc_chargeable_weight: shipresponse.data[0].chargeable_weight,
-              dtdc_self_pickup_enabled: shipresponse.data[0].self_pickup_enabled,
-              dtdc_customer_reference_number: shipresponse.data[0].customer_reference_number,
-              dtdc_pieces: JSON.stringify(shipresponse.data[0].pieces),
-              dtdc_barCodeData: shipresponse.data[0].barCodeData,
-              shipResponse: JSON.stringify(shipresponse.data[0]),
-              shipCreatedDate: currentDate,
-              shipCancelDate: currentDate
-            });
-          }
-          return shipresponse.data;
+      
+      const labelString = await shipmentService.createDTDCLabel({ refNumber });
 
-        } else {
-          return shipresponse.data;
-        }
-      } else {
-        return shipresponse.data;
-      }
+      // Convert it to a Buffer using correct encoding
+      const labelBuffer = Buffer.from(labelString, 'binary'); // or 'utf-8' if it came as utf-8 text
 
-    } catch (error) {
-      console.log(error);
-      return "Error in creating shipment";
+      res.set({
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment;filename=CN${refNumber}.pdf`,
+        'Cache-Control': 'no-cache',
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'SAMEORIGIN',
+        'Strict-Transport-Security': 'max-age=86400',
+        'Access-Control-Allow-Credentials': 'true',
+        'Vary': 'Origin'
+      });
+
+      return res.send(labelBuffer);
+    } else {
+      return res.status(405).json({ message: "Method not allowed" });
     }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong", error });
   }
+}
 
-  static async createDTDCLabel(req, res) {
-    try {
-      if (req.method == "GET") {
-        const refNumber = req.query.reference_number;
-          const labelresponse = await shipmentService.createDTDCLabel({
-            refNumber
-          });
-          return labelresponse;
-      }
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ message: "Something went wrong", error });
-    }
-  }
+
 
 }
 

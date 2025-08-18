@@ -164,8 +164,7 @@ exports.createDTDCShipment = async ({ payload }) => {
 exports.createDTDCLabel = async ({ refNumber }) => {
 
   try {
-    const authToken = DTDCAPIKEY;
-    console.log(refNumber, authToken);
+    const authToken = DTDCAPIKEY;  
     const response = await axios.get(
       `${apiDTDCBaseUrl}/customer/integration/consignment/shippinglabel/stream?reference_number=${refNumber}&label_code=SHIP_LABEL_4X6&label_format=pdf`,
       {
@@ -173,10 +172,11 @@ exports.createDTDCLabel = async ({ refNumber }) => {
           "api-key": `${authToken}`,
           "Content-Type": "application/json",
         },
+         responseType: 'arraybuffer'
       }
     );
 
-    return response;
+    return Buffer.from(response.data);
   } catch (error) {
     return error.response?.data;
   }
