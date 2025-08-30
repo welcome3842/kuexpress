@@ -16,6 +16,10 @@ module.exports = (sequelize, Sequelize) => {
       Order.hasOne(models.Invoice, {
         foreignKey: 'orderId', as: 'invoice'
       });
+
+       Order.belongsTo(models.User, {
+        foreignKey: 'userId', as: 'userDetails'
+      });
     }
   }
   Order.init(
@@ -77,6 +81,10 @@ module.exports = (sequelize, Sequelize) => {
         defaultValue: 0
       },
       orderDate: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+       pickupDate: {
         type: Sequelize.DATE,
         allowNull: true,
       },
@@ -161,6 +169,10 @@ module.exports = (sequelize, Sequelize) => {
         allowNull: true,
       },
       courierType: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      courierName: {
         type: Sequelize.STRING,
         allowNull: true,
       },

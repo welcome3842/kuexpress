@@ -278,7 +278,8 @@ class ShipmentController {
           shipresponse.pickupDetails = result.pickupDetails;
           shipresponse.packageDetails = result.packageDetails;
           shipresponse.buyerDetails =  result.buyerDetails;
-
+          shipresponse.courier_name = reqData.courierName; 
+          shipresponse.courier_id = reqData.courier_id;  
           return res.status(200).json(shipresponse);
         } else {
           const addressData = result.buyerDetails;
@@ -365,6 +366,7 @@ class ShipmentController {
               if (order) {
                 const currentDate = new Date();
                 await order.update({
+                  pickupDate:reqData.expectedPickup,
                   status: 2,
                   message: shipresponse.message,
                   shipping_id: shipresponse.shipping_id,
@@ -375,7 +377,8 @@ class ShipmentController {
                   shipResponse: JSON.stringify(shipresponse),
                   shipCreatedDate: currentDate,
                   shipCancelDate: currentDate,
-                  courierType:"XpressBees"
+                  courierType:"XpressBees",
+                  courierName:reqData.courierName
                 });
               }            
 
@@ -586,6 +589,7 @@ class ShipmentController {
           if (order) {            
             const currentDate = new Date();
             await order.update({
+              pickupDate:reqData.expectedPickup,
               status: 2,
               message: shipresponse.data[0].message,
               dtdc_reference_number: shipresponse.data[0].reference_number,
@@ -601,7 +605,8 @@ class ShipmentController {
               shipResponse: JSON.stringify(shipresponse.data[0]),
               shipCreatedDate: currentDate,
               shipCancelDate: currentDate,
-              courierType:"DTDC"
+              courierType:"DTDC",
+              courierName:reqData.courierName
             });
           }
           return shipresponse.data[0];

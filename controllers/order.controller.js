@@ -1,6 +1,4 @@
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
+
 const Joi = require('joi');
 const db = require('../models');
 const Order = db.Order;
@@ -12,8 +10,8 @@ const UserAddress = db.UserAddress;
 const PickupAddress = db.PickupAddress;
 const Invoice = db.Invoice;
 const ReturnOrder = db.ReturnOrder;
-const nodemailer = require('nodemailer');
-const { password } = require('../config/db.config');
+const { Op } = require("sequelize");
+
 
 class OrderController {
 
@@ -163,55 +161,64 @@ class OrderController {
     }
   }
   static async getOrderList(req, res) {
-    try {
-      const roleId = req.user.userRole;
-      const orderStatus = req.query.orderStatus ? req.query.orderStatus : '';
-      if (orderStatus < 0 || orderStatus > 9) {
-        return res.status(400).json({ "success": false, message: 'Order status allowed in single digit between 0-9' });
-      }
-      let filterData = {};
-      if (orderStatus) {
-        filterData.status = orderStatus;
-      }
-      
-      if (![1, 2].includes(roleId)) {
-        filterData.userId = req.user.id;
-      }
+        try {
+              const roleId = req.user.userRole;
+              const orderStatus = req.query.orderStatus ? req.query.orderStatus : '';
+              const { startDate, endDate, pickupDate } = req.query; 
 
-      const orders = await db.Order.findAll({
-        where: filterData,
-        include: [
-          {
-            model: db.ShippingAddress,
-            as: 'buyerDetails'
-          },
-          {
-            model: db.OrderProduct,
-            as: 'productDetails'
-          },
-          {
-            model: db.PackageDetails,
-            as: 'packageDetails'
-          },
-          {
-            model: db.Invoice,
-            as: 'invoice'
-          },
-          {
-            model: db.PickupAddress,
-            as: 'pickupDetails'
-          }
-        ],
-          order: [['id', 'DESC']]
-      });
+              if (orderStatus < 0 || orderStatus > 9) {
+                return res.status(400).json({ success: false, message: 'Order status allowed in single digit between 0-9' });
+              }
 
-      if (orders) {
-        return res.status(200).json({ "success": true, "data": orders });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error fetching orders with orders');
-    }
+              let filterData = {};
+
+              if (orderStatus) {
+                filterData.status = orderStatus;
+              }
+
+              // Restrict to user if not admin
+              if (![1, 2].includes(roleId)) {
+                filterData.userId = req.user.id;
+              }
+
+              //  Single Date filter (whole day)
+              if (pickupDate) {
+                const singleDay = new Date(pickupDate);
+                const startOfDay = new Date(singleDay.setHours(0, 0, 0, 0));
+                const endOfDay = new Date(singleDay.setHours(23, 59, 59, 999));
+
+                filterData.pickupDate = { [Op.between]: [startOfDay, endOfDay] };
+              }
+              //  Date Range filter
+              else if (startDate && endDate) {
+                filterData.createdAt = {
+                  [Op.between]: [new Date(startDate), new Date(endDate)]
+                };
+              } else if (startDate) {
+                filterData.createdAt = { [Op.gte]: new Date(startDate) };
+              } else if (endDate) {
+                filterData.createdAt = { [Op.lte]: new Date(endDate) };
+              }
+             console.log(filterData);
+              const orders = await db.Order.findAll({
+                where: filterData,
+                include: [
+                  { model: db.ShippingAddress, as: 'buyerDetails' },
+                  { model: db.OrderProduct, as: 'productDetails' },
+                  { model: db.PackageDetails, as: 'packageDetails' },
+                  { model: db.Invoice, as: 'invoice' },
+                  { model: db.PickupAddress, as: 'pickupDetails' },
+                  { model: db.User, as: 'userDetails', attributes: ['id', 'firstName', 'lastName',  'email', 'mobile'] }
+                ],
+                order: [['id', 'DESC']]
+              });
+
+              return res.status(200).json({ success: true, data: orders });
+
+            } catch (error) {
+              console.error(error);
+              res.status(500).send('Error fetching orders with filters');
+            }
   }
   static async getLocationBypinCode(req, res) {
     try {
@@ -265,7 +272,7 @@ class OrderController {
       var reqData = req.body;
       const cancelOrder = await Order.findOne({ where: { orderNumebr: reqData.orderNumebr } });
       if (cancelOrder) {
-        await cancelOrder.update({ status: 5 });
+        await cancelOrder.update({ status: 7 });
         return res.status(200).json({ "success": true, message: "Order canceled successfully" });
       }
     } catch (error) {
