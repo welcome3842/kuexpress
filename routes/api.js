@@ -10,7 +10,7 @@ const ProductController    =  require('../controllers/product.controller');
 const TaskController    =  require('../controllers/task.controller');
 const CompanyController    =  require('../controllers/company.controller');
 const UploadController    =  require('../controllers/upload.controller');
-
+const DashboardController  =  require('../controllers/dashboard.controller');
 
 router.post('/auth/login', AuthController.login);
 router.post('/auth/signup',  AuthController.register);
@@ -37,6 +37,7 @@ router.post('/settings/billingAddress', authorize,  UserController.createAndUpda
 router.get('/settings/billingAddress/list', authorize, UserController.getSettingBillingList);
 router.post('/settings/invoice', authorize,  UserController.createAndUpdateSettingsInvoice);
 router.get('/settings/invoice/list', authorize, UserController.getSettingInvoiceList);
+router.get('/dashboard', authorize, DashboardController.index);
 
 router.get('/order/list', authorize, OrderController.getOrderList);
 router.get('/location/:pincode',  OrderController.getLocationBypinCode);
