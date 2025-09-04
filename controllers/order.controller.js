@@ -163,8 +163,8 @@ class OrderController {
   static async getOrderList(req, res) {
         try {
               const roleId = req.user.userRole;
-              const orderStatus = req.query.orderStatus ? req.query.orderStatus : '';
-              const { startDate, endDate, pickupDate } = req.query; 
+              
+              const { startDate, endDate, pickupDate, orderStatus, type, userId } = req.query; 
 
               if (orderStatus < 0 || orderStatus > 9) {
                 return res.status(400).json({ success: false, message: 'Order status allowed in single digit between 0-9' });
@@ -179,6 +179,9 @@ class OrderController {
               // Restrict to user if not admin
               if (![1, 2].includes(roleId)) {
                 filterData.userId = req.user.id;
+              }
+               if (req.query.userId ) {
+                filterData.userId = userId;
               }
 
               //  Single Date filter (whole day)
@@ -199,17 +202,33 @@ class OrderController {
               } else if (endDate) {
                 filterData.createdAt = { [Op.lte]: new Date(endDate) };
               }
-             console.log(filterData);
+
+              let include = [
+                { model: db.ShippingAddress, as: 'buyerDetails' },
+                { model: db.OrderProduct, as: 'productDetails' },
+                { model: db.PackageDetails, as: 'packageDetails' },
+                { model: db.Invoice, as: 'invoice' },
+                { model: db.PickupAddress, as: 'pickupDetails' },
+                {
+                  model: db.User,
+                  as: 'userDetails',
+                  attributes: ['id', 'firstName', 'lastName', 'email', 'mobile', 'userRole'],
+                  where: {} 
+                }
+              ];
+
+             
+              if (type) {
+                if (type.toLowerCase() === "b2b") {
+                  include.find(i => i.as === 'userDetails').where.userRole = 3; 
+                } else if (type.toLowerCase() === "b2c") {
+                  include.find(i => i.as === 'userDetails').where.userRole = 4; 
+                }
+              }
+             
               const orders = await db.Order.findAll({
                 where: filterData,
-                include: [
-                  { model: db.ShippingAddress, as: 'buyerDetails' },
-                  { model: db.OrderProduct, as: 'productDetails' },
-                  { model: db.PackageDetails, as: 'packageDetails' },
-                  { model: db.Invoice, as: 'invoice' },
-                  { model: db.PickupAddress, as: 'pickupDetails' },
-                  { model: db.User, as: 'userDetails', attributes: ['id', 'firstName', 'lastName',  'email', 'mobile'] }
-                ],
+                include,
                 order: [['id', 'DESC']]
               });
 
